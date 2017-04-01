@@ -1,0 +1,60 @@
+group 'nl.astraeus'
+version '0.0.1-SNAPSHOT'
+
+apply plugin: 'kotlin2js'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+idea {
+    module {
+        name = "komp"
+    }
+}
+
+repositories {
+    maven {
+        url "http://nexus.astraeus.nl/nexus/content/groups/public"
+    }
+    mavenCentral()
+}
+
+buildscript {
+    ext.kotlin_version = '1.1.1'
+    repositories {
+        maven {
+            url "http://nexus.astraeus.nl/nexus/content/groups/public"
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile 'org.jetbrains.kotlinx:kotlinx-html-js:0.6.2'
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+
+    compileKotlin2Js.kotlinOptions.sourceMap = true
+    compileKotlin2Js.kotlinOptions.outputFile = "${buildDir}/kotlinjs/komp.js"
+    compileKotlin2Js.kotlinOptions.suppressWarnings = true
+    compileKotlin2Js.kotlinOptions.verbose = true
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://nexus.astraeus.nl/nexus/content/repositories/releases") {
+                authentication(userName: nexusUsername, password: nexusPassword)
+            }
+            snapshotRepository(url: "http://nexus.astraeus.nl/nexus/content/repositories/snapshots") {
+                authentication(userName: nexusUsername, password: nexusPassword)
+            }
+        }
+    }
+}
