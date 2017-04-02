@@ -16,10 +16,14 @@ object Komp {
         elements[element] = component
     }
 
-    fun create(parent: HTMLElement, component: HtmlComponent) {
+    fun create(parent: HTMLElement, component: HtmlComponent, insertAsFirst: Boolean = false) {
         val element = component.create()
 
-        parent.appendChild(element)
+        if (insertAsFirst && parent.childElementCount > 0) {
+            parent.insertBefore(element, parent.firstChild)
+        } else {
+            parent.appendChild(element)
+        }
 
         elements[element] = component
     }
