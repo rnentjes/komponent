@@ -33,7 +33,7 @@ abstract class HtmlComponent {
 
     abstract fun render(consumer: TagConsumer<HTMLElement>): HTMLElement
 
-    fun refresh() {
+    open fun refresh() {
         Komp.refresh(element)
     }
 }
