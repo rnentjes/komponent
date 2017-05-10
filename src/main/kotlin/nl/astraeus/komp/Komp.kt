@@ -1,6 +1,7 @@
 package nl.astraeus.komp
 
 import org.w3c.dom.HTMLElement
+import kotlin.browser.window
 
 /**
  * User: rnentjes
@@ -54,7 +55,44 @@ object Komp {
                 val newElement = comp.create()
 
                 parent?.replaceChild(newElement, element)
+
+                window.setTimeout({
+                    resize(comp)
+                })
             }
+
+        }
+    }
+
+    private fun resize(component: HtmlComponent) {
+        println("Resize $component")
+    }
+
+    fun sizeElement(element: HTMLElement, size: ComponentSize) {
+        var width = ""
+        var height = ""
+        val parent = element.parentElement as HTMLElement
+
+        when(size.xType) {
+            SizeType.ABSOLUTE -> {
+                width = "${size.xValue.toInt()}px"
+            }
+            SizeType.PERCENTAGE -> {
+                width = "${(parent.clientWidth *  size.xValue / 100f).toInt()}px"
+            }
+            SizeType.FILL -> {
+
+            }
+            SizeType.FLEX -> {
+
+            }
+        }
+
+        if (width.isNotBlank()) {
+            element.style.width = width
+        }
+        if (height.isNotBlank()) {
+            element.style.height = height
         }
     }
 

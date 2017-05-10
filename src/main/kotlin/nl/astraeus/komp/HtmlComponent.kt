@@ -36,4 +36,6 @@ abstract class HtmlComponent {
     open fun refresh() {
         Komp.refresh(element)
     }
+
+    open fun getSize(): ComponentSize? = null
 }
