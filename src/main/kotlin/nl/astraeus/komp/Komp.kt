@@ -1,6 +1,7 @@
 package nl.astraeus.komp
 
 import org.w3c.dom.HTMLElement
+import kotlin.browser.window
 
 /**
  * User: rnentjes
@@ -52,15 +53,19 @@ object Komp {
             if (element is HTMLElement && comp != null) {
                 val parent = element.parentElement
                 val newElement = comp.create()
-                val size = comp.getSize()
-
-                if (size != null) {
-                    sizeElement(newElement, size)
-                }
 
                 parent?.replaceChild(newElement, element)
+
+                window.setTimeout({
+                    resize(comp)
+                })
             }
+
         }
+    }
+
+    private fun resize(component: HtmlComponent) {
+        println("Resize $component")
     }
 
     fun sizeElement(element: HTMLElement, size: ComponentSize) {
