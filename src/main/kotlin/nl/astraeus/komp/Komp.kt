@@ -1,6 +1,9 @@
 package nl.astraeus.komp
 
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.get
+import kotlin.browser.document
 import kotlin.browser.window
 
 /**
@@ -12,9 +15,18 @@ import kotlin.browser.window
 object Komp {
 
     private val elements: MutableMap<HTMLElement, HtmlComponent> = HashMap()
+    private val elementList: MutableList<HtmlComponent> = ArrayList()
+    private var resizing = false
+
+    init {
+        window.onresize = {
+            Komp.resize()
+        }
+    }
 
     fun define(element: HTMLElement, component: HtmlComponent) {
         elements[element] = component
+        elementList.add(component)
     }
 
     fun create(parent: HTMLElement, component: HtmlComponent, insertAsFirst: Boolean = false) {
@@ -27,10 +39,16 @@ object Komp {
         }
 
         elements[element] = component
+        elementList.add(component)
+
+        resize()
     }
 
     fun remove(element: HTMLElement) {
+        val component = elements[element]
+
         elements.remove(element)
+        elementList.remove(component)
     }
 
     @JsName("remove")
@@ -40,6 +58,7 @@ object Komp {
                 elements.remove(key)
             }
         }
+        elementList.remove(component)
     }
 
     fun refresh(component: HtmlComponent) {
@@ -55,45 +74,135 @@ object Komp {
                 val newElement = comp.create()
 
                 parent?.replaceChild(newElement, element)
-
-                window.setTimeout({
-                    resize(comp)
-                })
             }
+        }
 
+        resize()
+    }
+
+    private fun resize() {
+        if (!resizing) {
+            resizing = true
+
+            window.setTimeout({
+                resizing = false
+
+                resizeComponents()
+            })
         }
     }
 
-    private fun resize(component: HtmlComponent) {
-        println("Resize $component")
-    }
-
-    fun sizeElement(element: HTMLElement, size: ComponentSize) {
-        var width = ""
-        var height = ""
-        val parent = element.parentElement as HTMLElement
-
-        when(size.xType) {
-            SizeType.ABSOLUTE -> {
-                width = "${size.xValue.toInt()}px"
-            }
-            SizeType.PERCENTAGE -> {
-                width = "${(parent.clientWidth *  size.xValue / 100f).toInt()}px"
-            }
-            SizeType.FILL -> {
-
-            }
-            SizeType.FLEX -> {
-
-            }
+    private fun resizeComponents() {
+        for (component in elementList) {
+            component.element?.setAttribute("data-resized", "false")
         }
 
-        if (width.isNotBlank()) {
-            element.style.width = width
-        }
-        if (height.isNotBlank()) {
-            element.style.height = height
+        for (component in elementList) {
+            if (component.element?.getAttribute("data-resize") != "true") {
+                if (component.element?.attributes?.get("hbox") != null || component.element?.attributes?.get("vbox") != null) {
+                    console.log("resize", component)
+
+                    resize(component)
+                }
+            }
         }
     }
+
+    private fun resize(comp: HtmlComponent) {
+        val parent = comp.element?.parentElement
+
+        if (parent != null) {
+            val sizes = getSiblingSizes(parent)
+            val parentSize = elements[parent]?.size
+            val container: SizeContainer
+
+            if (parentSize != null) {
+                container = SizeContainer(
+                  parentSize.calculatedSize,
+                  sizes
+                )
+            } else {
+                val leftString = (parent as HTMLElement).style.left
+                val topString = parent.style.top
+                val widthString = parent.style.width
+                val heightString = parent.style.height
+
+                if (parent == document.body) {
+                    container = SizeContainer(
+                      Rect(parent.clientLeft, parent.clientTop, parent.clientWidth, parent.clientHeight),
+                      sizes
+                    )
+                } else if (leftString.endsWith("px") && topString.endsWith("px") && widthString.endsWith("px") && heightString.endsWith("px")) {
+                    container = SizeContainer(
+                      Rect(
+                        leftString.slice(0..leftString.length - 3).toInt(),
+                        topString.slice(0..topString.length - 3).toInt(),
+                        widthString.slice(0..widthString.length - 3).toInt(),
+                        heightString.slice(0..heightString.length - 3).toInt()
+                      ),
+                      sizes
+                    )
+                } else {
+                    container = SizeContainer(
+                      Rect(parent.clientLeft, parent.clientTop, parent.clientWidth, parent.clientHeight),
+                      sizes
+                    )
+                }
+            }
+
+            container.calculate()
+        }
+    }
+
+    private fun getSiblingSizes(parent: Element): List<ComponentSize> {
+        val result: MutableList<ComponentSize> = ArrayList()
+
+        for (index in 0..parent.children.length-1) {
+            val child = parent.children[index]
+
+            if (child is HTMLElement) {
+                val comp = elements[child]
+                val size = getSize(child)
+                comp?.size = size
+
+                result.add(ComponentSize(child, size.layout, size.type, size.value))
+            }
+        }
+
+        return result
+    }
+
+    fun getSize(element: HTMLElement): ComponentSize {
+        val horText = element.attributes?.get("hbox")?.value
+        val verText = element.attributes?.get("vbox")?.value
+        var result: ComponentSize? = null
+
+        if (horText != null && verText != null) {
+            throw IllegalStateException("Attributes 'hbox' and 'vbox' can not be combined!")
+        } else if (horText != null) {
+            val (type, size) = getSizeFromAttribute(horText)
+
+            result = ComponentSize(element, LayoutType.HORIZONTAL, type, size)
+        } else if (verText != null) {
+            val (type, size) = getSizeFromAttribute(verText)
+
+            result = ComponentSize(element, LayoutType.VERTICAL, type, size)
+        }
+
+        return result ?: throw IllegalStateException("Unable to calculate size for $this")
+    }
+
+    private fun getSizeFromAttribute(sizeString: String): Pair<SizeType, Float> {
+        if (sizeString == "fill") {
+            return SizeType.FILL to 0f
+        } else if (sizeString.endsWith("px")) {
+            return SizeType.ABSOLUTE to sizeString.slice(0..sizeString.length-3).toFloat()
+        } else if (sizeString.endsWith("%")) {
+            return SizeType.PERCENTAGE to sizeString.slice(0..sizeString.length-2).toFloat()
+        } else {
+            return SizeType.FLEX to sizeString.toFloat()
+        }
+    }
+
 
 }

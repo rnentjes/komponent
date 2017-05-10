@@ -15,6 +15,7 @@ fun DIV.include(component: HtmlComponent) {
 
 abstract class HtmlComponent {
     var element: HTMLElement? = null
+    var size: ComponentSize? = null
 
     fun create(): HTMLElement {
         var elem =element
@@ -37,5 +38,4 @@ abstract class HtmlComponent {
         Komp.refresh(element)
     }
 
-    open fun getSize(): ComponentSize? = null
 }
