@@ -20,7 +20,7 @@ object Komp {
 
     init {
         window.onresize = {
-            Komp.resize()
+            //Komp.resize()
         }
     }
 
@@ -41,7 +41,7 @@ object Komp {
         elements[element] = component
         elementList.add(component)
 
-        resize()
+        //resize()
     }
 
     fun remove(element: HTMLElement) {
@@ -77,7 +77,7 @@ object Komp {
             }
         }
 
-        resize()
+        //resize()
     }
 
     private fun resize() {
@@ -98,12 +98,10 @@ object Komp {
         }
 
         for (component in elementList) {
-            if (component.element?.getAttribute("data-resize") != "true") {
-                if (component.element?.attributes?.get("hbox") != null || component.element?.attributes?.get("vbox") != null) {
-                    console.log("resize", component)
+            if (component.sizing != Sizing.NONE && component.element?.getAttribute("data-resize") != "true") {
+                console.log("resize", component)
 
-                    resize(component)
-                }
+                resize(component)
             }
         }
     }
@@ -165,7 +163,7 @@ object Komp {
                 val size = getSize(child)
                 comp?.size = size
 
-                result.add(ComponentSize(child, size.layout, size.type, size.value))
+                result.add(ComponentSize(child, size.type, size.value))
             }
         }
 
@@ -173,20 +171,13 @@ object Komp {
     }
 
     fun getSize(element: HTMLElement): ComponentSize {
-        val horText = element.attributes?.get("hbox")?.value
-        val verText = element.attributes?.get("vbox")?.value
+        val sizeText = element.attributes?.get("size")?.value
         var result: ComponentSize? = null
 
-        if (horText != null && verText != null) {
-            throw IllegalStateException("Attributes 'hbox' and 'vbox' can not be combined!")
-        } else if (horText != null) {
-            val (type, size) = getSizeFromAttribute(horText)
+        if (sizeText != null) {
+            val (type, size) = getSizeFromAttribute(sizeText)
 
-            result = ComponentSize(element, LayoutType.HORIZONTAL, type, size)
-        } else if (verText != null) {
-            val (type, size) = getSizeFromAttribute(verText)
-
-            result = ComponentSize(element, LayoutType.VERTICAL, type, size)
+            result = ComponentSize(element, type, size)
         }
 
         return result ?: throw IllegalStateException("Unable to calculate size for $this")

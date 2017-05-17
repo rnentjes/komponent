@@ -13,7 +13,13 @@ fun DIV.include(component: HtmlComponent) {
     Komp.define(result, component)
 }
 
-abstract class HtmlComponent {
+enum class Sizing {
+    NONE,
+    HORIZONTAL,
+    VERTICAL
+}
+
+abstract class HtmlComponent(val sizing: Sizing = Sizing.NONE) {
     var element: HTMLElement? = null
     var size: ComponentSize? = null
 
@@ -36,6 +42,10 @@ abstract class HtmlComponent {
 
     open fun refresh() {
         Komp.refresh(element)
+
+        if (sizing != Sizing.NONE) {
+            // resize children
+        }
     }
 
 }

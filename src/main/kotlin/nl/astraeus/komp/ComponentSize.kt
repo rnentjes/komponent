@@ -8,12 +8,6 @@ import org.w3c.dom.HTMLElement
  * Time: 16:48
  */
 
-enum class LayoutType {
-    NONE,
-    HORIZONTAL,
-    VERTICAL
-}
-
 enum class SizeType {
     NONE,
     ABSOLUTE,
@@ -24,7 +18,6 @@ enum class SizeType {
 
 open class ComponentSize(
   val element: HTMLElement,
-  val layout: LayoutType,
   val type: SizeType,
   val value: Float
 ) {
@@ -46,7 +39,6 @@ class SizeContainer(
   val parentSize: Rect,
   val componentList: List<ComponentSize>
 ) {
-    var layout: LayoutType? = null
     var totalSize = 0
     var totalPixels = 0f
     var totalPercentage = 0f
@@ -60,13 +52,6 @@ class SizeContainer(
 
     fun calculate() {
         for (size in componentList) {
-            if (layout == null) {
-                layout = size.layout
-            } else if (layout != size.layout) {
-                console.log("hbox/vbox combined:", componentList)
-                throw IllegalStateException("hbox and vbox mixed between siblings!")
-            }
-
             when(size.type) {
                 SizeType.ABSOLUTE -> {
                     totalPixels += size.value
@@ -83,15 +68,11 @@ class SizeContainer(
             }
         }
 
-        if (layout == null) {
-            throw IllegalStateException("No hbox or vbox attribute found!?")
-        }
-
-        if (layout == LayoutType.HORIZONTAL) {
+/*        if (layout == LayoutType.HORIZONTAL) {
             totalSize = parentSize.width
         } else {
             totalSize = parentSize.height
-        }
+        }*/
 
         afterPixels = totalSize - totalPixels
         afterPercentage = afterPixels * totalPercentage / 100f
@@ -112,11 +93,11 @@ class SizeContainer(
                 }
             }
 
-            if (layout == LayoutType.HORIZONTAL) {
+/*            if (layout == LayoutType.HORIZONTAL) {
                 size.calculatedSize = Rect(calculatedStart, parentSize.top, calculatedSize, parentSize.height)
             } else {
                 size.calculatedSize = Rect(parentSize.left, calculatedStart, parentSize.width, calculatedSize)
-            }
+            }*/
 
             calculatedStart += calculatedSize
             console.log("Set component to ${size.calculatedSize}", size.element)
