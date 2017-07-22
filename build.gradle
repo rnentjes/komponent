@@ -1,5 +1,5 @@
 group 'nl.astraeus'
-version '0.0.3-SNAPSHOT'
+version '0.0.4-SNAPSHOT'
 
 apply plugin: 'kotlin2js'
 apply plugin: 'idea'
