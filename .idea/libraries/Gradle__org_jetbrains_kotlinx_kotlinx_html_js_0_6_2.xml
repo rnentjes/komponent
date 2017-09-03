@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.6.2">
+  <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.6.2" type="kotlin.js">
     <CLASSES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.6.2/eba3a3fb7eb7ec26f4c4aece64b210d9e202d0df/kotlinx-html-js-0.6.2.jar!/" />
     </CLASSES>

@@ -10,6 +10,7 @@
           <option name="outputFile" value="$MODULE_DIR$/../../build/kotlinjs/komp.js" />
           <option name="noStdlib" value="true" />
           <option name="sourceMap" value="true" />
+          <option name="sourceMapEmbedSources" value="inlining" />
           <option name="metaInfo" value="true" />
           <option name="target" value="v5" />
           <option name="main" value="call" />
@@ -21,6 +22,7 @@
           <option name="pluginClasspaths">
             <array />
           </option>
+          <option name="verbose" value="true" />
           <option name="suppressWarnings" value="true" />
           <option name="coroutinesWarn" value="true" />
         </compilerArguments>
@@ -37,7 +39,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.1.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.1.4" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.6.2" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.6.2" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.1.0" level="project" />

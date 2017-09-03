@@ -2,10 +2,18 @@ package nl.astraeus.komp
 
 import kotlinx.html.DIV
 import kotlinx.html.FORM
+import kotlinx.html.SPAN
 import kotlinx.html.TagConsumer
 import kotlinx.html.dom.create
 import org.w3c.dom.HTMLElement
 import kotlin.browser.document
+
+fun SPAN.include(component: Komponent) {
+    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
+
+    component.element = result
+    Komponent.define(result, component)
+}
 
 fun DIV.include(component: Komponent) {
     val result = component.render(this.consumer as TagConsumer<HTMLElement>)
