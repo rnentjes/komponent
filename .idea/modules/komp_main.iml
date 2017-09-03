@@ -22,7 +22,6 @@
           <option name="pluginClasspaths">
             <array />
           </option>
-          <option name="verbose" value="true" />
           <option name="suppressWarnings" value="true" />
           <option name="coroutinesWarn" value="true" />
         </compilerArguments>
