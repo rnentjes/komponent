@@ -114,6 +114,7 @@ abstract class Komponent {
                     val newElement = it.create()
 
                     parent?.replaceChild(newElement, element)
+                    //DomDiffer.replaceDiff(newElement, element)
                 }
             }
         }
