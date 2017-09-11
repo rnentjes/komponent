@@ -1,6 +1,7 @@
 package nl.astraeus.komp
 
-import org.w3c.dom.HTMLElement
+import org.w3c.dom.Element
+import org.w3c.dom.Node
 import org.w3c.dom.get
 
 /**
@@ -11,23 +12,21 @@ import org.w3c.dom.get
 
 object DomDiffer {
 
-    fun replaceDiff(newElement: HTMLElement, oldElement: HTMLElement): HTMLElement {
-        println("CHECK $newElement -> $oldElement")
-        if (!match(newElement, oldElement)) {
-            println("no match, replace")
-
+    fun replaceDiff(newElement: Element, oldElement: Element): Element {
+        if (!newElement.isEqualNode(oldElement)) {
             replaceNode(newElement, oldElement)
 
             return newElement
         } else {
-            println("check children")
             // think of the children!
-            for (index in 0 until newElement.childElementCount) {
+            for (index in 0 until newElement.children.length) {
                 val newChild = newElement.children[index]
                 val oldChild = oldElement.children[index]
 
-                if (newChild is HTMLElement && oldChild is HTMLElement) {
+                if (newChild is Element && oldChild is Element) {
                     replaceDiff(newChild, oldChild)
+                } else {
+                    throw IllegalStateException("Children are not nodes! $newChild, $oldChild")
                 }
             }
 
@@ -35,39 +34,10 @@ object DomDiffer {
         }
     }
 
-    private fun replaceNode(newElement: HTMLElement, oldElement: HTMLElement) {
-        val parent = oldElement.parentElement
+    private fun replaceNode(newElement: Node, oldElement: Node) {
+        val parent = oldElement.parentElement ?: throw IllegalStateException("oldElement has no parent! $oldElement")
 
-        parent?.replaceChild(newElement, oldElement)
-    }
-
-    fun match(newElement: HTMLElement, oldElement: HTMLElement): Boolean {
-        var result = true
-
-        result = result && newElement.namespaceURI == oldElement.namespaceURI
-        result = result && newElement.nodeName == oldElement.nodeName
-        result = result && newElement.childElementCount == oldElement.childElementCount
-
-        val newAttr = newElement.attributes
-        val oldAttr = oldElement.attributes
-
-        result = result && newAttr.length == oldAttr.length
-
-        if (result) {
-            for (index in 0 until newAttr.length) {
-                val attr = newAttr[index]
-
-                if (attr != null) {
-                    result = result && newAttr.getNamedItem(attr.name)?.name == oldAttr.getNamedItem(attr.name)?.name
-                    result = result && newAttr.getNamedItem(attr.name)?.value == oldAttr.getNamedItem(attr.name)?.value
-                }
-                if (!result) {
-                    break
-                }
-            }
-        }
-
-        return result
+        parent.replaceChild(newElement, oldElement)
     }
 
 }

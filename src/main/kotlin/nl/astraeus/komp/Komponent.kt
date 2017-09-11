@@ -5,6 +5,7 @@ import kotlinx.html.FORM
 import kotlinx.html.SPAN
 import kotlinx.html.TagConsumer
 import kotlinx.html.dom.create
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import kotlin.browser.document
 
@@ -30,7 +31,7 @@ fun FORM.include(component: Komponent) {
 }
 
 abstract class Komponent {
-    var element: HTMLElement? = null
+    var element: Element? = null
     var rendered = false
 
     fun create(): HTMLElement {
@@ -65,7 +66,7 @@ abstract class Komponent {
 
     companion object {
 
-        private val elements: MutableMap<HTMLElement, Komponent> = HashMap()
+        private val elements: MutableMap<Element, Komponent> = HashMap()
         private val elementList: MutableList<Komponent> = ArrayList()
 
         fun define(element: HTMLElement, component: Komponent) {
@@ -86,7 +87,7 @@ abstract class Komponent {
             elementList.add(component)
         }
 
-        fun remove(element: HTMLElement) {
+        fun remove(element: Element) {
             val component = elements[element]
 
             elements.remove(element)
@@ -107,7 +108,7 @@ abstract class Komponent {
             refresh(component.element)
         }
 
-        fun refresh(element: HTMLElement?) {
+        fun refresh(element: Element?) {
             if (element != null) {
                 elements[element]?.let {
                     //val parent = element.parentElement

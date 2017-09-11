@@ -139,13 +139,13 @@
         <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.1.0/446dff483a1ff560b2da6058481da04c0e97428f/kotlin-stdlib-common-1.1.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.1.4" type="kotlin.js">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.1.4-2" type="kotlin.js">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.1.4/55f39a77bc0893576d48e1cc4065e41d6feb9233/kotlin-stdlib-js-1.1.4.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.1.4-2/bb372269ed17ca9ffad8bb253440544ce209dabd/kotlin-stdlib-js-1.1.4-2.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.1.4/cac83db2042ebed585ce6cf418079aea2a14ade0/kotlin-stdlib-js-1.1.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.1.4-2/b3d59978e58be7402fe3c061ed5928a95f851c8a/kotlin-stdlib-js-1.1.4-2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.6.2" type="kotlin.js">
