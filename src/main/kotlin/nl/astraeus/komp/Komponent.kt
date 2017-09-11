@@ -110,11 +110,16 @@ abstract class Komponent {
         fun refresh(element: HTMLElement?) {
             if (element != null) {
                 elements[element]?.let {
-                    val parent = element.parentElement
+                    //val parent = element.parentElement
                     val newElement = it.create()
 
-                    parent?.replaceChild(newElement, element)
-                    //DomDiffer.replaceDiff(newElement, element)
+                    //parent?.replaceChild(newElement, element)
+                    val replacedElement = DomDiffer.replaceDiff(newElement, element)
+
+                    it.element = replacedElement
+
+                    elements.remove(replacedElement)
+                    elements[replacedElement] = it
                 }
             }
         }

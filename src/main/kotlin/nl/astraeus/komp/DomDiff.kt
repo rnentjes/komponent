@@ -11,10 +11,16 @@ import org.w3c.dom.get
 
 object DomDiffer {
 
-    fun replaceDiff(newElement: HTMLElement, oldElement: HTMLElement) {
+    fun replaceDiff(newElement: HTMLElement, oldElement: HTMLElement): HTMLElement {
+        println("CHECK $newElement -> $oldElement")
         if (!match(newElement, oldElement)) {
+            println("no match, replace")
+
             replaceNode(newElement, oldElement)
+
+            return newElement
         } else {
+            println("check children")
             // think of the children!
             for (index in 0 until newElement.childElementCount) {
                 val newChild = newElement.children[index]
@@ -24,6 +30,8 @@ object DomDiffer {
                     replaceDiff(newChild, oldChild)
                 }
             }
+
+            return oldElement
         }
     }
 
