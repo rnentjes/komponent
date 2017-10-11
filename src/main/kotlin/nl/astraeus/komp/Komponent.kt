@@ -34,6 +34,13 @@ fun TD.include(component: Komponent) {
     Komponent.define(result, component)
 }
 
+fun TABLE.include(component: Komponent) {
+    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
+
+    component.element = result
+    Komponent.define(result, component)
+}
+
 abstract class Komponent {
     var element: Element? = null
     var rendered = false
