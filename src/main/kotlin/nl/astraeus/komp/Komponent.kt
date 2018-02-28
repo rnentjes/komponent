@@ -1,51 +1,24 @@
 package nl.astraeus.komp
 
-import kotlinx.html.*
+import kotlinx.html.HtmlBlockTag
+import kotlinx.html.TagConsumer
 import kotlinx.html.dom.create
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import kotlin.browser.document
 
-fun SPAN.include(component: Komponent) {
+fun HtmlBlockTag.include(component: Komponent) {
     val result = component.render(this.consumer as TagConsumer<HTMLElement>)
 
     component.element = result
-    Komponent.define(result, component)
-}
-
-fun DIV.include(component: Komponent) {
-    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
-
-    component.element = result
-    Komponent.define(result, component)
-}
-
-fun FORM.include(component: Komponent) {
-    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
-
-    component.element = result
-    Komponent.define(result, component)
-}
-
-fun TD.include(component: Komponent) {
-    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
-
-    component.element = result
-    Komponent.define(result, component)
-}
-
-fun TABLE.include(component: Komponent) {
-    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
-
-    component.element = result
-    Komponent.define(result, component)
+    nl.astraeus.komp.Komponent.define(result, component)
 }
 
 abstract class Komponent {
     var element: Element? = null
     var rendered = false
 
-    fun create(): HTMLElement {
+    open fun create(): HTMLElement {
         var elem =element
         if (elem != null) {
             remove(elem)
