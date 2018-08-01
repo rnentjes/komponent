@@ -5,7 +5,6 @@
       <map>
         <entry key="checkstyle-version" value="8.4" />
         <entry key="copy-libs" value="false" />
-        <entry key="last-active-plugin-version" value="5.16.3" />
         <entry key="location-0" value="BUNDLED:(bundled):Sun Checks" />
         <entry key="location-1" value="BUNDLED:(bundled):Google Checks" />
         <entry key="scan-before-checkin" value="false" />
@@ -58,7 +57,7 @@
     </option>
   </component>
   <component name="HotSwapAgentPluginSettingsProvider">
-    <option name="agentPath" value="$APPLICATION_PLUGINS_DIR$/hotswap-agent-intellij-plugin/lib/agent/hotswap-agent-1.0.jar" />
+    <option name="agentPath" value="$APPLICATION_PLUGINS_DIR$/hotswap-agent-intellij-plugin/lib/agent/hotswap-agent-1.3.0.jar" />
   </component>
   <component name="InspectionProjectProfileManager">
     <profile version="1.0">
@@ -151,27 +150,22 @@
     <mapping directory="" vcs="Git" />
   </component>
   <component name="libraryTable">
-    <library name="Flutter Plugins">
-      <CLASSES />
-      <JAVADOC />
-      <SOURCES />
-    </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.1.4" type="kotlin.common">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.2.51" type="kotlin.common">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.1.4/dc47c809e549ff5e48be235b682e2d6eaf9b1d9e/kotlin-stdlib-common-1.1.4.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.51/e4a9d4b13ab19ed1e6531fce6df98e8cfa7f7301/kotlin-stdlib-common-1.2.51.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.1.4/ee299091d089dbc770eac2d3b59383917dc14cc2/kotlin-stdlib-common-1.1.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.51/e8c91083a5863d94fdc2836459e7e7a555774be9/kotlin-stdlib-common-1.2.51-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.2.21" type="kotlin.js">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.2.51" type="kotlin.js">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.2.21/ff3f8ae5d1bd662bbb89dfc7a4ca70a8d663733/kotlin-stdlib-js-1.2.21.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.2.51/ac00507005af8df9e3a0957f9169f47cca7cdb72/kotlin-stdlib-js-1.2.51.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.2.21/16a3f8f3704502ea2fd666e8aaffb3a33a095c2d/kotlin-stdlib-js-1.2.21-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.2.51/c00799bfcbee73a3cd1f0d78031de126a0e7c200/kotlin-stdlib-js-1.2.51-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.6.4" type="kotlin.common">

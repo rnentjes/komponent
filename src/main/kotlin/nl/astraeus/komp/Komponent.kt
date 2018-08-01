@@ -1,112 +1,168 @@
 package nl.astraeus.komp
 
 import kotlinx.html.HtmlBlockTag
-import kotlinx.html.TagConsumer
-import kotlinx.html.dom.create
-import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
-import kotlin.browser.document
+import org.w3c.dom.Node
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
 fun HtmlBlockTag.include(component: Komponent) {
-    val result = component.render(this.consumer as TagConsumer<HTMLElement>)
+  val consumer = this.consumer
+  if (consumer is KompConsumer) {
+    consumer.appendKomponent(component)
+  }
 
-    component.element = result
-    nl.astraeus.komp.Komponent.define(result, component)
+/*
+  val kc = this.consumer
+  val result = component.render(kc as KompConsumer)
+  val element = result.create()
+
+  component.element = element
+  Komponent.define(element, component, result)
+*/
 }
 
 abstract class Komponent {
-    var element: Element? = null
-    var rendered = false
+  var element: Node? = null
+  var kompElement: KompElement? = null
+  var rendered = false
 
-    open fun create(): HTMLElement {
-        var elem =element
-        if (elem != null) {
-            remove(elem)
-        }
+  open fun create(): KompElement {
+    val result = render(KompConsumer())
 
-        elem = render(document.create)
-        rendered = true
+    return result
+  }
 
-        define(elem, this)
+  abstract fun render(consumer: KompConsumer): KompElement
 
-        this.element = elem
+  open fun refresh() {
+    if (!rendered) {
+      refresh(element)
+    } else {
+      update()
+    }
+  }
 
-        return elem
+  open fun update() {
+    refresh(element)
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other == null || this::class.js != other::class.js) return false
+
+    other as Komponent
+
+    if (kompElement != other.kompElement) return false
+    if (rendered != other.rendered) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = kompElement?.hashCode() ?: 0
+    result = 31 * result + rendered.hashCode()
+    return result
+  }
+
+  companion object {
+
+    private val elements: MutableMap<Node, Komponent> = HashMap()
+
+    fun replaceNode(newKomponent: KompElement, oldElement: Node): Node {
+      val newElement = newKomponent.create()
+
+      val parent = oldElement.parentElement ?: throw IllegalStateException("oldElement has no parent! $oldElement")
+
+      parent.replaceChild(newElement, oldElement)
+
+      elements[oldElement]?.also {
+        elements.remove(oldElement)
+      }
+
+      newKomponent.komponent?.also {
+        it.element = newElement
+
+        elements[newElement] = it
+      }
+
+      return newElement
     }
 
-    abstract fun render(consumer: TagConsumer<HTMLElement>): HTMLElement
+    fun removeElement(element: Node) {
+      val parent = element.parentElement ?: throw IllegalArgumentException("Element has no parent!?")
 
-    open fun refresh() {
-        if (rendered) {
-            refresh(element)
+      parent.removeChild(element)
+
+      elements.remove(element)
+    }
+
+    fun appendElement(element: Node, kompElement: KompElement) {
+      element.appendChild(kompElement.create())
+    }
+
+    fun define(element: Node, component: Komponent) {
+      elements[element] = component
+    }
+
+    fun create(parent: HTMLElement, component: Komponent, insertAsFirst: Boolean = false) {
+      component.kompElement = component.create()
+      val element = component.kompElement?.create()
+
+      if (element != null) {
+        if (insertAsFirst && parent.childElementCount > 0) {
+          parent.insertBefore(element, parent.firstChild)
         } else {
-            update()
+          parent.appendChild(element)
         }
+
+        component.element = element
+        elements[element] = component
+      }
     }
 
-    open fun update() {
-        refresh(element)
+    fun remove(element: Node) {
+      val component = elements[element]
+
+      elements.remove(element)
     }
 
-    companion object {
-
-        private val elements: MutableMap<Element, Komponent> = HashMap()
-        private val elementList: MutableList<Komponent> = ArrayList()
-
-        fun define(element: HTMLElement, component: Komponent) {
-            elements[element] = component
-            elementList.add(component)
+    @JsName("remove")
+    fun remove(component: Komponent) {
+      for ((key, value) in elements) {
+        if (value == component) {
+          elements.remove(key)
         }
-
-        fun create(parent: HTMLElement, component: Komponent, insertAsFirst: Boolean = false) {
-            val element = component.create()
-
-            if (insertAsFirst && parent.childElementCount > 0) {
-                parent.insertBefore(element, parent.firstChild)
-            } else {
-                parent.appendChild(element)
-            }
-
-            elements[element] = component
-            elementList.add(component)
-        }
-
-        fun remove(element: Element) {
-            val component = elements[element]
-
-            elements.remove(element)
-            elementList.remove(component)
-        }
-
-        @JsName("remove")
-        fun remove(component: Komponent) {
-            for ((key, value) in elements) {
-                if (value == component) {
-                    elements.remove(key)
-                }
-            }
-            elementList.remove(component)
-        }
-
-        fun refresh(component: Komponent) {
-            refresh(component.element)
-        }
-
-        fun refresh(element: Element?) {
-            if (element != null) {
-                elements[element]?.let {
-                    //val parent = element.parentElement
-                    val newElement = it.create()
-
-                    //parent?.replaceChild(newElement, element)
-                    val replacedElement = DomDiffer.replaceDiff(newElement, element)
-
-                    it.element = replacedElement
-
-                    elements.remove(replacedElement)
-                    elements[replacedElement] = it
-                }
-            }
-        }
+      }
     }
+
+    fun refresh(component: Komponent) {
+      refresh(component.element)
+    }
+
+    fun refresh(element: Node?) {
+      if (element != null) {
+        elements[element]?.let {
+          //val parent = element.parentElement
+          val newElement = it.create()
+          val kompElement = it.kompElement
+
+          val replacedElement = if (kompElement != null) {
+            DomDiffer.replaceDiff(kompElement, newElement, element)
+          } else {
+            newElement.create()
+          }
+
+          it.kompElement = newElement
+          it.element = replacedElement
+
+          elements.remove(element)
+          elements[replacedElement] = it
+
+          it.rendered = true
+        }
+      }
+    }
+  }
 }

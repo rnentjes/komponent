@@ -1,6 +1,5 @@
 package nl.astraeus.komp
 
-import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.get
 
@@ -12,32 +11,74 @@ import org.w3c.dom.get
 
 object DomDiffer {
 
-    fun replaceDiff(newElement: Element, oldElement: Element): Element {
-        if (!newElement.isEqualNode(oldElement)) {
-            replaceNode(newElement, oldElement)
+  fun replaceDiff(oldElement: KompElement, newElement: KompElement, element: Node): Node {
+    if (oldElement.isKomponent() && newElement.isKomponent()) {
+      if (oldElement.equals(newElement)) {
+        newElement.komponent?.update()
+        return newElement.komponent?.element!!
+      } else {
+        return Komponent.replaceNode(newElement, element)
+      }
+    } else if (!oldElement.isKomponent() && newElement.isKomponent()) {
+      return Komponent.replaceNode(newElement, element)
+    } else if (!oldElement.equals(newElement)) {
+      return Komponent.replaceNode(newElement, element)
+    } else {
+      if (oldElement.children == null && newElement.children != null) {
+        for (index in 0 until newElement.children.size) {
+          Komponent.appendElement(element, newElement.children[index])
+        }
+      } else if (oldElement.children != null && newElement.children == null) {
+        while(element.firstChild != null) {
+          element.removeChild(element.firstChild!!)
+        }
+      } else if (oldElement.children != null && newElement.children != null) {
+        if (oldElement.children.size > newElement.children.size) {
+          val toRemove = oldElement.children.size - newElement.children.size
+          var removed = 0
+          var index = 0
 
-            return newElement
-        } else {
-            // think of the children!
-            for (index in 0 until newElement.children.length) {
-                val newChild = newElement.children[index]
-                val oldChild = oldElement.children[index]
+          while(index < newElement.children.size) {
+            val childNode = element.childNodes[index]
 
-                if (newChild is Element && oldChild is Element) {
-                    replaceDiff(newChild, oldChild)
-                } else {
-                    throw IllegalStateException("Children are not nodes! $newChild, $oldChild")
-                }
+            if (childNode == null) {
+              println("Warn childNode is null!")
+            } else {
+              if (!oldElement.children[index + removed].equals(newElement.children[index]) && removed < toRemove) {
+                element.removeChild(childNode)
+
+                removed++
+              } else {
+                replaceDiff(oldElement.children[index + removed], newElement.children[index], childNode)
+
+                index++
+              }
+            }
+          }
+
+          while(removed < toRemove) {
+            element.lastChild?.also {
+              Komponent.removeElement(it)
             }
 
-            return oldElement
+            removed++
+          }
+        } else {
+          for (index in 0 until newElement.children.size) {
+            val childNode = element.childNodes[index]
+
+            if (childNode == null) {
+              Komponent.appendElement(element, newElement.children[index])
+            //} else if (!oldElement.children[index + removed].equals(newElement.children[index]) && removed < toRemove) {
+            } else {
+              replaceDiff(oldElement.children[index], newElement.children[index], childNode)
+            }
+          }
         }
-    }
+      }
 
-    private fun replaceNode(newElement: Node, oldElement: Node) {
-        val parent = oldElement.parentElement ?: throw IllegalStateException("oldElement has no parent! $oldElement")
-
-        parent.replaceChild(newElement, oldElement)
+      return element
     }
+  }
 
 }

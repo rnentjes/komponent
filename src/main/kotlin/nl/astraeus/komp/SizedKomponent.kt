@@ -3,7 +3,6 @@ package nl.astraeus.komp
 import kotlinx.html.dom.create
 import kotlinx.html.js.div
 import kotlinx.html.style
-import org.w3c.dom.HTMLElement
 import kotlin.browser.document
 
 /**
@@ -37,16 +36,20 @@ abstract class SizedKomponent(
     this.size = size
   }
 
-  override fun create(): HTMLElement {
+  override fun create(): KompElement {
     val innerResult = super.create()
 
     val result = document.create.div {
       style = "left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px;" // sizing here
     }
 
+/*
     result.appendChild(innerResult)
     this.element = result
     return result
+*/
+
+    return innerResult
   }
 
 }
