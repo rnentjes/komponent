@@ -15,7 +15,9 @@ object DomDiffer {
     if (oldElement.isKomponent() && newElement.isKomponent()) {
       if (oldElement.equals(newElement)) {
         newElement.komponent?.update()
-        return newElement.komponent?.element!!
+
+        return newElement.komponent?.element ?: newElement.komponent?.create()?.create()
+        ?: throw IllegalStateException("Unable to create new element!")
       } else {
         return Komponent.replaceNode(newElement, element)
       }
@@ -29,7 +31,10 @@ object DomDiffer {
           Komponent.appendElement(element, newElement.children[index])
         }
       } else if (oldElement.children != null && newElement.children == null) {
-        while(element.firstChild != null) {
+        while (element.firstChild != null) {
+          if (Komponent.logReplaceEvent) {
+            console.log("Remove", element.firstChild)
+          }
           element.removeChild(element.firstChild!!)
         }
       } else if (oldElement.children != null && newElement.children != null) {
@@ -38,13 +43,16 @@ object DomDiffer {
           var removed = 0
           var index = 0
 
-          while(index < newElement.children.size) {
+          while (index < newElement.children.size) {
             val childNode = element.childNodes[index]
 
             if (childNode == null) {
               println("Warn childNode is null!")
             } else {
-              if (!oldElement.children[index + removed].equals(newElement.children[index]) && removed < toRemove) {
+              if ((!oldElement.children[index + removed].equals(newElement.children[index])) && removed < toRemove) {
+                if (Komponent.logReplaceEvent) {
+                  console.log("Remove", oldElement.children[index + removed], newElement.children[index])
+                }
                 element.removeChild(childNode)
 
                 removed++
@@ -56,7 +64,7 @@ object DomDiffer {
             }
           }
 
-          while(removed < toRemove) {
+          while (removed < toRemove) {
             element.lastChild?.also {
               Komponent.removeElement(it)
             }
@@ -69,7 +77,6 @@ object DomDiffer {
 
             if (childNode == null) {
               Komponent.appendElement(element, newElement.children[index])
-            //} else if (!oldElement.children[index + removed].equals(newElement.children[index]) && removed < toRemove) {
             } else {
               replaceDiff(oldElement.children[index], newElement.children[index], childNode)
             }

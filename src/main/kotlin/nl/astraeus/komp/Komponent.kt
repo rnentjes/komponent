@@ -14,6 +14,7 @@ fun HtmlBlockTag.include(component: Komponent) {
   }
 
 /*
+          newElement.komponent = it
   val kc = this.consumer
   val result = component.render(kc as KompConsumer)
   val element = result.create()
@@ -23,6 +24,11 @@ fun HtmlBlockTag.include(component: Komponent) {
 */
 }
 
+enum class UpdateStrategy {
+  REPLACE,
+  DOM_DIFF
+}
+
 abstract class Komponent {
   var element: Node? = null
   var kompElement: KompElement? = null
@@ -30,6 +36,8 @@ abstract class Komponent {
 
   open fun create(): KompElement {
     val result = render(KompConsumer())
+
+    //result.komponent = this
 
     return result
   }
@@ -70,8 +78,17 @@ abstract class Komponent {
 
     private val elements: MutableMap<Node, Komponent> = HashMap()
 
+    var logRenderEvent = false
+    var logReplaceEvent = false
+    var logEquals = false
+    var updateStrategy = UpdateStrategy.DOM_DIFF
+
     fun replaceNode(newKomponent: KompElement, oldElement: Node): Node {
       val newElement = newKomponent.create()
+
+      if (Komponent.logReplaceEvent) {
+        console.log("Replace", oldElement, newElement)
+      }
 
       val parent = oldElement.parentElement ?: throw IllegalStateException("oldElement has no parent! $oldElement")
 
@@ -82,6 +99,7 @@ abstract class Komponent {
       }
 
       newKomponent.komponent?.also {
+        it.kompElement = newKomponent
         it.element = newElement
 
         elements[newElement] = it
@@ -93,13 +111,21 @@ abstract class Komponent {
     fun removeElement(element: Node) {
       val parent = element.parentElement ?: throw IllegalArgumentException("Element has no parent!?")
 
+      if (Komponent.logReplaceEvent) {
+        console.log("Remove", element)
+      }
+
       parent.removeChild(element)
 
       elements.remove(element)
     }
 
     fun appendElement(element: Node, kompElement: KompElement) {
-      element.appendChild(kompElement.create())
+      val newElement = kompElement.create()
+      if (Komponent.logReplaceEvent) {
+        console.log("Append", newElement)
+      }
+      element.appendChild(newElement)
     }
 
     fun define(element: Node, component: Komponent) {
@@ -123,8 +149,6 @@ abstract class Komponent {
     }
 
     fun remove(element: Node) {
-      val component = elements[element]
-
       elements.remove(element)
     }
 
@@ -144,21 +168,35 @@ abstract class Komponent {
     fun refresh(element: Node?) {
       if (element != null) {
         elements[element]?.let {
-          //val parent = element.parentElement
-          val newElement = it.create()
-          val kompElement = it.kompElement
-
-          val replacedElement = if (kompElement != null) {
-            DomDiffer.replaceDiff(kompElement, newElement, element)
-          } else {
-            newElement.create()
+          if (logRenderEvent) {
+            console.log("Rendering", it)
           }
 
-          it.kompElement = newElement
-          it.element = replacedElement
+          //val parent = element.parentElement
+          val newElement = it.create()
 
-          elements.remove(element)
-          elements[replacedElement] = it
+          if (updateStrategy == UpdateStrategy.REPLACE) {
+            replaceNode(newElement, element)
+/*
+            val replacedElement = replaceNode(newElement, element)
+            it.element = replacedElement
+            elements[replacedElement] = it
+*/
+          } else {
+            val kompElement = it.kompElement
+
+            val replacedElement = if (kompElement != null) {
+              DomDiffer.replaceDiff(kompElement, newElement, element)
+            } else {
+              newElement.create()
+            }
+
+            it.kompElement = newElement
+            it.element = replacedElement
+
+            elements.remove(element)
+            elements[replacedElement] = it
+          }
 
           it.rendered = true
         }
