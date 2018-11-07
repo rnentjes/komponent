@@ -130,7 +130,7 @@ class KompElement(
     return type == ElementType.KOMPONENT
   }
 
-  fun create(): Node = when(type) {
+  fun create(svg: Boolean = false): Node = when(type) {
     ElementType.KOMPONENT -> {
       val komp = komponent
 
@@ -154,7 +154,11 @@ class KompElement(
     }
     ElementType.TEXT -> document.createTextNode(text)
     ElementType.UNSAFE -> {
-      val div = document.createElement("div")
+      val div = if (svg) {
+        document.createElementNS("http://www.w3.org/2000/svg","svg")
+      } else {
+        document.createElement("div")
+      }
       var result: Node? = null
 
       div.innerHTML = text
@@ -177,7 +181,12 @@ class KompElement(
       result ?: throw IllegalStateException("No element found in unsafe content! [$text]")
     }
     ElementType.TAG -> {
-      val result = document.createElement(text)
+      var svg = text == "svg"
+      val result = if (svg) {
+        document.createElementNS("http://www.w3.org/2000/svg", text)
+      } else {
+        document.createElement(text)
+      }
 
       (attributes?.entries)?.forEach { entry ->
         result.setAttribute(entry.key, entry.value)
@@ -193,7 +202,7 @@ class KompElement(
       }
 
       children?.forEach { child ->
-        result.append(child.create())
+        result.append(child.create(svg))
       }
 
       result
