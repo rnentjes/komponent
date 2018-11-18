@@ -163,12 +163,12 @@ class KompElement(
 
       div.innerHTML = text
 
-      console.log("div element with unsafe innerHTML", div)
+      //console.log("div element with unsafe innerHTML", div)
 
       for (index in 0 until div.childNodes.length) {
         val node = div.childNodes[index]!!
 
-        console.log("$index -> ", node)
+        //console.log("$index -> ", node)
 
         if (node.isElement) {
           if (result != null) {
@@ -181,7 +181,7 @@ class KompElement(
       result ?: throw IllegalStateException("No element found in unsafe content! [$text]")
     }
     ElementType.TAG -> {
-      var svg = text == "svg"
+      val svg = text == "svg"
       val result = if (svg) {
         document.createElementNS("http://www.w3.org/2000/svg", text)
       } else {
@@ -294,7 +294,7 @@ class KompConsumer : TagConsumer<KompElement> {
   }
 
   override fun onTagContentEntity(entity: Entities) {
-    console.log("KC.onTagContentEntity", entity)
+    //console.log("KC.onTagContentEntity", entity)
   }
 
   override fun onTagContentUnsafe(block: Unsafe.() -> Unit) {
@@ -303,12 +303,12 @@ class KompConsumer : TagConsumer<KompElement> {
 
     block.invoke(txt)
 
-    console.log("KC.onTagContentUnsafe", txt)
+    //console.log("KC.onTagContentUnsafe", txt)
     currentTag?.children?.add(KompElement(txt.text, ElementType.UNSAFE))
   }
 
   override fun onTagEnd(tag: Tag) {
-    console.log("KC.onTagEnd", tag)
+    //console.log("KC.onTagEnd", tag)
 
     check(currentTag != null)
     check(currentTag?.children != null)
@@ -330,7 +330,7 @@ class KompConsumer : TagConsumer<KompElement> {
   }
 
   override fun onTagStart(tag: Tag) {
-    console.log("KC.onTagStart", tag)
+    //console.log("KC.onTagStart", tag)
 
     currentTag?.apply {
       stack.add(this)
@@ -396,7 +396,7 @@ class KompTest : Komponent() {
         onClickFunction = {
           show = true
 
-          console.log("show", this)
+          //console.log("show", this)
 
           update()
         }

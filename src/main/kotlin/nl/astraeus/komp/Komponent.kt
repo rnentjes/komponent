@@ -14,7 +14,7 @@ fun HtmlBlockTag.include(component: Komponent) {
   }
 
 /*
-          newElement.komponent = it
+  newElement.komponent = it
   val kc = this.consumer
   val result = component.render(kc as KompConsumer)
   val element = result.create()
@@ -176,12 +176,11 @@ abstract class Komponent {
           val newElement = it.create()
 
           if (updateStrategy == UpdateStrategy.REPLACE) {
-            replaceNode(newElement, element)
-/*
+            //val replacedElement = replaceNode(newElement, element)
+
             val replacedElement = replaceNode(newElement, element)
             it.element = replacedElement
             elements[replacedElement] = it
-*/
           } else {
             val kompElement = it.kompElement
 
