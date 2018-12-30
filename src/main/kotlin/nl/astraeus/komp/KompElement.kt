@@ -4,11 +4,6 @@ import kotlinx.html.Entities
 import kotlinx.html.Tag
 import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
-import kotlinx.html.div
-import kotlinx.html.h1
-import kotlinx.html.hr
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.span
 import org.w3c.dom.Node
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
@@ -32,7 +27,7 @@ class KompElement(
     val type: ElementType,
     val komponent: Komponent?,
     var text: String,
-    val attributes: MutableMap<String, String>? = null,
+    var attributes: MutableMap<String, String>? = null,
     val children: MutableList<KompElement>? = null,
     val events: MutableMap<String, (Event) -> Unit>? = null
 ) {
@@ -221,7 +216,7 @@ class KompElement(
       result.append("<")
     }
     result.append(text)
-    if (attributes != null) {
+    attributes?.also { attributes ->
       for (entry in attributes.entries) {
         result.append("\n")
         result.append(indent)
@@ -338,9 +333,7 @@ class KompConsumer : TagConsumer<KompElement> {
 
     currentTag = KompElement(tag.tagName, ElementType.TAG)
 
-    for (attr in tag.attributes.entries) {
-      currentTag?.attributes?.set(attr.key, attr.value)
-    }
+    currentTag?.attributes = tag.attributes
   }
 
   fun appendKomponent(komponent: Komponent) {
@@ -348,69 +341,3 @@ class KompConsumer : TagConsumer<KompElement> {
   }
 
 }
-
-class KompTest : Komponent() {
-  var counter = 0
-  var show = false
-  var child: KompTest? = null
-
-  override fun render(consumer: KompConsumer) = consumer.div {
-    h1 {
-      +"Test"
-    }
-    hr { }
-    span {
-      +"Clicks $counter"
-
-      onClickFunction = {
-        println("click")
-        counter++
-
-        update()
-      }
-    }
-    if (show) {
-      hr {}
-
-      span {
-        +"Hide element"
-
-        onClickFunction = {
-          show = false
-
-          update()
-        }
-      }
-
-      if (child == null) {
-        child = KompTest()
-      }
-
-      include(child!!)
-    } else {
-      hr {}
-
-      span {
-        +"Show element"
-
-        onClickFunction = {
-          show = true
-
-          //console.log("show", this)
-
-          update()
-        }
-      }
-    }
-  }
-}
-
-/*
-fun main(args: Array<String>) {
-  val test = KompTest()
-
-  println(test.create())
-
-  Komponent.create(document.body!!, KompTest())
-}
-*/

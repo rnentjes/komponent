@@ -12,16 +12,6 @@ fun HtmlBlockTag.include(component: Komponent) {
   if (consumer is KompConsumer) {
     consumer.appendKomponent(component)
   }
-
-/*
-  newElement.komponent = it
-  val kc = this.consumer
-  val result = component.render(kc as KompConsumer)
-  val element = result.create()
-
-  component.element = element
-  Komponent.define(element, component, result)
-*/
 }
 
 enum class UpdateStrategy {
