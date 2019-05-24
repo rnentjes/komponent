@@ -65,14 +65,13 @@
     </profile>
     <version value="1.0" />
   </component>
-  <component name="Kotlin2JsCompilerArguments">
-    <option name="sourceMapEmbedSources" />
-    <option name="sourceMapPrefix" />
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="qFcQOWli" />
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/komp.iml" filepath="$PROJECT_DIR$/komp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/komp.iml" filepath="$PROJECT_DIR$/komp.iml" group="komp" />
     </modules>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">

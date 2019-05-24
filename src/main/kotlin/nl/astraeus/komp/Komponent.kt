@@ -84,9 +84,7 @@ abstract class Komponent {
 
       parent.replaceChild(newElement, oldElement)
 
-      elements[oldElement]?.also {
-        elements.remove(oldElement)
-      }
+      elements.remove(oldElement)
 
       newKomponent.komponent?.also {
         it.kompElement = newKomponent
@@ -183,10 +181,10 @@ abstract class Komponent {
             it.kompElement = newElement
             it.element = replacedElement
 
-            elements.remove(element)
             elements[replacedElement] = it
           }
 
+          elements.remove(element)
           it.rendered = true
         }
       }
