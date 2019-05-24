@@ -132,17 +132,12 @@ class KompElement(
       if (komp == null) {
         throw IllegalStateException("komponent == null in type Komponent!")
       } else {
-        komp.element?.also {
-          Komponent.remove(it)
-        }
 
         val kompElement = komp.create()
         val element = kompElement.create()
 
         komp.kompElement = kompElement
         komp.element = element
-
-        Komponent.define(element, komp)
 
         element
       }

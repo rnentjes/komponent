@@ -3,9 +3,6 @@ package nl.astraeus.komp
 import kotlinx.html.HtmlBlockTag
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 
 fun HtmlBlockTag.include(component: Komponent) {
   val consumer = this.consumer
@@ -27,8 +24,6 @@ abstract class Komponent {
   open fun create(): KompElement {
     val result = render(KompConsumer())
 
-    //result.komponent = this
-
     return result
   }
 
@@ -36,14 +31,14 @@ abstract class Komponent {
 
   open fun refresh() {
     if (!rendered) {
-      refresh(element)
+      refresh(this)
     } else {
       update()
     }
   }
 
   open fun update() {
-    refresh(element)
+    refresh(this)
   }
 
   override fun equals(other: Any?): Boolean {
@@ -66,8 +61,6 @@ abstract class Komponent {
 
   companion object {
 
-    private val elements: MutableMap<Node, Komponent> = HashMap()
-
     var logRenderEvent = false
     var logReplaceEvent = false
     var logEquals = false
@@ -84,13 +77,9 @@ abstract class Komponent {
 
       parent.replaceChild(newElement, oldElement)
 
-      elements.remove(oldElement)
-
       newKomponent.komponent?.also {
         it.kompElement = newKomponent
         it.element = newElement
-
-        elements[newElement] = it
       }
 
       return newElement
@@ -104,23 +93,18 @@ abstract class Komponent {
       }
 
       parent.removeChild(element)
-
-      elements.remove(element)
     }
 
     fun appendElement(element: Node, kompElement: KompElement) {
       val newElement = kompElement.create()
-      if (Komponent.logReplaceEvent) {
+      if (logReplaceEvent) {
         console.log("Append", newElement)
       }
       element.appendChild(newElement)
     }
 
-    fun define(element: Node, component: Komponent) {
-      elements[element] = component
-    }
-
     fun create(parent: HTMLElement, component: Komponent, insertAsFirst: Boolean = false) {
+
       component.kompElement = component.create()
       val element = component.kompElement?.create()
 
@@ -132,61 +116,33 @@ abstract class Komponent {
         }
 
         component.element = element
-        elements[element] = component
       }
     }
 
-    fun remove(element: Node) {
-      elements.remove(element)
-    }
+    fun refresh(komponent: Komponent) {
+      komponent.element?.let { element ->
 
-    @JsName("remove")
-    fun remove(component: Komponent) {
-      for ((key, value) in elements) {
-        if (value == component) {
-          elements.remove(key)
+        if (logRenderEvent) {
+          console.log("Rendering", komponent)
         }
-      }
-    }
 
-    fun refresh(component: Komponent) {
-      refresh(component.element)
-    }
+        //val parent = element.parentElement
+        val newElement = komponent.create()
+        val kompElement = komponent.kompElement
 
-    fun refresh(element: Node?) {
-      if (element != null) {
-        elements[element]?.let {
-          if (logRenderEvent) {
-            console.log("Rendering", it)
-          }
+        val replacedElement = if (updateStrategy == UpdateStrategy.REPLACE) {
+          //val replacedElement = replaceNode(newElement, element)
 
-          //val parent = element.parentElement
-          val newElement = it.create()
-
-          if (updateStrategy == UpdateStrategy.REPLACE) {
-            //val replacedElement = replaceNode(newElement, element)
-
-            val replacedElement = replaceNode(newElement, element)
-            it.element = replacedElement
-            elements[replacedElement] = it
-          } else {
-            val kompElement = it.kompElement
-
-            val replacedElement = if (kompElement != null) {
-              DomDiffer.replaceDiff(kompElement, newElement, element)
-            } else {
-              newElement.create()
-            }
-
-            it.kompElement = newElement
-            it.element = replacedElement
-
-            elements[replacedElement] = it
-          }
-
-          elements.remove(element)
-          it.rendered = true
+          replaceNode(newElement, element)
+        } else if (kompElement != null) {
+          DomDiffer.replaceDiff(kompElement, newElement, element)
+        } else {
+          newElement.create()
         }
+
+        komponent.kompElement = newElement
+        komponent.element = replacedElement
+        komponent.rendered = true
       }
     }
   }
