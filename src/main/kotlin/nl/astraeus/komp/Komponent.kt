@@ -29,16 +29,38 @@ abstract class Komponent {
 
   abstract fun render(consumer: KompConsumer): KompElement
 
-  open fun refresh() {
-    if (!rendered) {
-      refresh(this)
+  open fun refresh(forceRefresh: Boolean = false) {
+    if (!rendered || forceRefresh) {
+      element?.let { element ->
+        if (logRenderEvent) {
+          console.log("Rendering", this)
+        }
+
+        val newElement = create()
+
+        val replacedElement = if (updateStrategy == UpdateStrategy.REPLACE) {
+          //val replacedElement = replaceNode(newElement, element)
+
+          replaceNode(newElement, element)
+        } else if (kompElement != null) {
+          kompElement?.let {
+            DomDiffer.replaceDiff(it, newElement, element)
+          }
+        } else {
+          newElement.create()
+        }
+
+        kompElement = newElement
+        this.element = replacedElement
+        rendered = true
+      }
     } else {
       update()
     }
   }
 
   open fun update() {
-    refresh(this)
+    refresh(true)
   }
 
   override fun equals(other: Any?): Boolean {
@@ -116,33 +138,6 @@ abstract class Komponent {
         }
 
         component.element = element
-      }
-    }
-
-    fun refresh(komponent: Komponent) {
-      komponent.element?.let { element ->
-
-        if (logRenderEvent) {
-          console.log("Rendering", komponent)
-        }
-
-        //val parent = element.parentElement
-        val newElement = komponent.create()
-        val kompElement = komponent.kompElement
-
-        val replacedElement = if (updateStrategy == UpdateStrategy.REPLACE) {
-          //val replacedElement = replaceNode(newElement, element)
-
-          replaceNode(newElement, element)
-        } else if (kompElement != null) {
-          DomDiffer.replaceDiff(kompElement, newElement, element)
-        } else {
-          newElement.create()
-        }
-
-        komponent.kompElement = newElement
-        komponent.element = replacedElement
-        komponent.rendered = true
       }
     }
   }
