@@ -1,5 +1,5 @@
 group 'nl.astraeus'
-version '0.1.4-SNAPSHOT'
+version '0.1.5-SNAPSHOT'
 
 apply plugin: 'kotlin2js'
 apply plugin: 'kotlin-dce-js'
