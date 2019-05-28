@@ -4,6 +4,7 @@ import kotlinx.html.Entities
 import kotlinx.html.Tag
 import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
@@ -25,20 +26,16 @@ enum class ElementType {
 
 class KompElement(
     val type: ElementType,
-    val komponent: Komponent?,
+    val komponent: Komponent,
     var text: String,
     var attributes: MutableMap<String, String>? = null,
     val children: MutableList<KompElement>? = null,
     val events: MutableMap<String, (Event) -> Unit>? = null
 ) {
 
-  constructor(text: String, type: ElementType) : this(
+  constructor(komponent: Komponent, text: String, type: ElementType) : this(
       type,
-      if (type == ElementType.KOMPONENT) {
-        throw IllegalStateException("Type KOMPONENT not allowed in String constructor")
-      } else {
-        null
-      },
+      komponent,
       text,
       if (type == ElementType.TAG) {
         HashMap()
@@ -68,7 +65,7 @@ class KompElement(
 
   /* shallow equals check */
   fun equals(other: KompElement): Boolean {
-    if (komponent != null) {
+    if (other.isKomponent() && isKomponent()) {
       val result = komponent == other.komponent
       if (!result && Komponent.logEquals) {
         console.log("!= komponent", this, other)
@@ -129,18 +126,13 @@ class KompElement(
     ElementType.KOMPONENT -> {
       val komp = komponent
 
-      if (komp == null) {
-        throw IllegalStateException("komponent == null in type Komponent!")
-      } else {
+      val kompElement = komp.create()
+      val element = kompElement.create()
 
-        val kompElement = komp.create()
-        val element = kompElement.create()
+      komp.kompElement = kompElement
+      komp.element = element
 
-        komp.kompElement = kompElement
-        komp.element = element
-
-        element
-      }
+      element
     }
     ElementType.TEXT -> document.createTextNode(text)
     ElementType.UNSAFE -> {
@@ -179,7 +171,34 @@ class KompElement(
       }
 
       (attributes?.entries)?.forEach { entry ->
-        result.setAttribute(entry.key, entry.value)
+        if (entry.key == "class") {
+          val classes = entry.value.split(" ")
+          val classNames = StringBuilder()
+
+          for (cls in classes) {
+            val cssStyle = komponent?.declaredStyles?.get(cls)
+
+            if (cssStyle != null) {
+              if (result is HTMLElement) {
+                for (index in 0 until cssStyle.length) {
+                  val propertyName = cssStyle.item(index)
+                  result.style.setProperty(propertyName, cssStyle.getPropertyValue(propertyName))
+                }
+              }
+            } else {
+              classNames.append(cls)
+              classNames.append(" ")
+            }
+          }
+
+          if (result !is HTMLElement) {
+            result.setAttribute(entry.key, entry.value)
+          } else {
+            result.className = classNames.toString()
+          }
+        } else {
+          result.setAttribute(entry.key, entry.value)
+        }
       }
 
       (events?.entries)?.forEach { event ->
@@ -262,7 +281,9 @@ class UnsafeWrapper: Unsafe {
   }
 }
 
-class KompConsumer : TagConsumer<KompElement> {
+class KompConsumer(
+    val komponent: Komponent
+) : TagConsumer<KompElement> {
   val stack = ArrayList<KompElement>()
   var currentTag: KompElement? = null
 
@@ -280,7 +301,7 @@ class KompConsumer : TagConsumer<KompElement> {
   override fun onTagContent(content: CharSequence) {
     //console.log("KC.onTagContent", content)
 
-    currentTag?.children?.add(KompElement(content.toString(), ElementType.TEXT))
+    currentTag?.children?.add(KompElement(komponent, content.toString(), ElementType.TEXT))
   }
 
   override fun onTagContentEntity(entity: Entities) {
@@ -294,7 +315,7 @@ class KompConsumer : TagConsumer<KompElement> {
     block.invoke(txt)
 
     //console.log("KC.onTagContentUnsafe", txt)
-    currentTag?.children?.add(KompElement(txt.text, ElementType.UNSAFE))
+    currentTag?.children?.add(KompElement(komponent, txt.text, ElementType.UNSAFE))
   }
 
   override fun onTagEnd(tag: Tag) {
@@ -326,7 +347,7 @@ class KompConsumer : TagConsumer<KompElement> {
       stack.add(this)
     }
 
-    currentTag = KompElement(tag.tagName, ElementType.TAG)
+    currentTag = KompElement(komponent, tag.tagName, ElementType.TAG)
 
     currentTag?.attributes = tag.attributes
   }

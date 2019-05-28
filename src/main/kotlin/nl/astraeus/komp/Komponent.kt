@@ -1,8 +1,11 @@
 package nl.astraeus.komp
 
 import kotlinx.html.HtmlBlockTag
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
+import org.w3c.dom.css.CSSStyleDeclaration
+import kotlin.browser.document
 
 fun HtmlBlockTag.include(component: Komponent) {
   val consumer = this.consumer
@@ -19,48 +22,49 @@ enum class UpdateStrategy {
 abstract class Komponent {
   var element: Node? = null
   var kompElement: KompElement? = null
-  var rendered = false
+  val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
 
   open fun create(): KompElement {
-    val result = render(KompConsumer())
+    val result = render(KompConsumer(this))
 
     return result
   }
 
   abstract fun render(consumer: KompConsumer): KompElement
 
-  open fun refresh(forceRefresh: Boolean = false) {
-    if (!rendered || forceRefresh) {
-      element?.let { element ->
-        if (logRenderEvent) {
-          console.log("Rendering", this)
-        }
+  open fun declareStyle(className: String, block: CSSStyleDeclaration.() -> Unit) {
+    val style = (document.createElement("div") as HTMLDivElement).style
+    block(style)
+    declaredStyles[className] = style
+  }
 
-        val newElement = create()
-
-        val replacedElement = if (updateStrategy == UpdateStrategy.REPLACE) {
-          //val replacedElement = replaceNode(newElement, element)
-
-          replaceNode(newElement, element)
-        } else if (kompElement != null) {
-          kompElement?.let {
-            DomDiffer.replaceDiff(it, newElement, element)
-          }
-        } else {
-          newElement.create()
-        }
-
-        kompElement = newElement
-        this.element = replacedElement
-        rendered = true
+  open fun refresh() {
+    element?.let { element ->
+      if (logRenderEvent) {
+        console.log("Rendering", this)
       }
-    } else {
-      update()
+
+      val newElement = create()
+
+      val replacedElement = if (updateStrategy == UpdateStrategy.REPLACE) {
+        //val replacedElement = replaceNode(newElement, element)
+
+        replaceNode(newElement, element)
+      } else if (kompElement != null) {
+        kompElement?.let {
+          DomDiffer.replaceDiff(it, newElement, element)
+        }
+      } else {
+        newElement.create()
+      }
+
+      kompElement = newElement
+      this.element = replacedElement
     }
   }
 
   open fun update() {
-    refresh(true)
+    refresh()
   }
 
   override fun equals(other: Any?): Boolean {
@@ -70,14 +74,12 @@ abstract class Komponent {
     other as Komponent
 
     if (kompElement != other.kompElement) return false
-    if (rendered != other.rendered) return false
 
     return true
   }
 
   override fun hashCode(): Int {
     var result = kompElement?.hashCode() ?: 0
-    result = 31 * result + rendered.hashCode()
     return result
   }
 
@@ -91,7 +93,7 @@ abstract class Komponent {
     fun replaceNode(newKomponent: KompElement, oldElement: Node): Node {
       val newElement = newKomponent.create()
 
-      if (Komponent.logReplaceEvent) {
+      if (logReplaceEvent) {
         console.log("Replace", oldElement, newElement)
       }
 
@@ -110,7 +112,7 @@ abstract class Komponent {
     fun removeElement(element: Node) {
       val parent = element.parentElement ?: throw IllegalArgumentException("Element has no parent!?")
 
-      if (Komponent.logReplaceEvent) {
+      if (logReplaceEvent) {
         console.log("Remove", element)
       }
 
