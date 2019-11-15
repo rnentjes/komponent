@@ -13,11 +13,6 @@ fun HtmlBlockTag.include(component: Komponent) {
   component.render(this.consumer as TagConsumer<HTMLElement>)
 }
 
-enum class UpdateStrategy {
-  REPLACE,
-  DOM_DIFF
-}
-
 abstract class Komponent {
   var element: Node? = null
   val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
@@ -58,8 +53,6 @@ abstract class Komponent {
 
     var logRenderEvent = false
     var logReplaceEvent = false
-    var logEquals = false
-    var updateStrategy = UpdateStrategy.DOM_DIFF
 
     fun removeElement(element: Node) {
       val parent = element.parentElement ?: throw IllegalArgumentException("Element has no parent!?")

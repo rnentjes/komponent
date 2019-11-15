@@ -43,7 +43,7 @@ dependencies {
 }
 
 uploadArchives {
-    println 'user: ' + nexusUsername
+    //println 'user: ' + nexusUsername
     repositories {
         mavenDeployer {
             repository(url: "http://nexus.astraeus.nl/nexus/content/repositories/releases") {
