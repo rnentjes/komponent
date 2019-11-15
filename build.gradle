@@ -1,5 +1,5 @@
 group 'nl.astraeus'
-version '0.1.7'
+version '0.1.9-SNAPSHOT'
 
 apply plugin: 'kotlin2js'
 apply plugin: 'kotlin-dce-js'
@@ -42,7 +42,6 @@ dependencies {
     compile 'org.jetbrains.kotlinx:kotlinx-html-js:0.6.10'
 }
 
-/*
 uploadArchives {
     //println 'user: ' + nexusUsername
     repositories {
@@ -56,7 +55,6 @@ uploadArchives {
         }
     }
 }
-*/
 
 compileKotlin2Js {
     kotlinOptions.sourceMap = true
