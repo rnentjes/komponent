@@ -1,50 +1,50 @@
 package nl.astraeus.komp
 
-import kotlinx.html.HtmlBlockTag
-import kotlinx.html.TagConsumer
-import kotlinx.html.dom.create
+import kotlinx.html.Tag
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import kotlin.browser.document
 
-fun HtmlBlockTag.include(component: Komponent) {
-  component.element = component.render(this.consumer as TagConsumer<HTMLElement>)
+fun Tag.include(component: Komponent) {
+  component.update()
+
+  val consumer = this.consumer
+  val element = component.element
+
+  if (consumer is HtmlBuilder && element != null) {
+    consumer.append(element)
+  }
 }
 
 abstract class Komponent {
   var element: Node? = null
 
   open fun create(): HTMLElement {
-    val result = render(document.create)
+    val consumer = HtmlBuilder(document)
+    val result = render(consumer)
 
     element = result
 
     return result
   }
 
-  abstract fun render(consumer: TagConsumer<HTMLElement>): HTMLElement
+  abstract fun render(consumer: HtmlBuilder): HTMLElement
+
+  open fun update() = refresh()
 
   open fun refresh() {
-    if (element == null) {
-      console.log("Unable to refresh, element == null", this)
+    val oldElement = element
+    if (logRenderEvent) {
+      console.log("Rendering", this)
     }
-    element?.let { element ->
-      if (logRenderEvent) {
-        console.log("Rendering", this)
-      }
+    val newElement = create()
 
-      val oldElement = element
-      val newElement = create()
-
-      if (logReplaceEvent) {
-        console.log("Replacing", oldElement, newElement)
-      }
-      element.parentNode?.replaceChild(newElement, oldElement)
+    if (oldElement != null) {
+        if (logReplaceEvent) {
+          console.log("Replacing", oldElement, newElement)
+        }
+        oldElement.parentNode?.replaceChild(newElement, oldElement)
     }
-  }
-
-  open fun update() {
-    refresh()
   }
 
   @JsName("remove")
@@ -61,7 +61,6 @@ abstract class Komponent {
   }
 
   companion object {
-
     var logRenderEvent = false
     var logReplaceEvent = false
 
