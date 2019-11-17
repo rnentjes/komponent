@@ -1,9 +1,13 @@
 package nl.astraeus.komp
 
 import kotlinx.html.Tag
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
+import org.w3c.dom.css.CSSStyleDeclaration
 import kotlin.browser.document
+
+public typealias CssStyle = CSSStyleDeclaration.() -> Unit
 
 fun Tag.include(component: Komponent) {
   component.update()
@@ -18,9 +22,10 @@ fun Tag.include(component: Komponent) {
 
 abstract class Komponent {
   var element: Node? = null
+  val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
 
   open fun create(): HTMLElement {
-    val consumer = HtmlBuilder(document)
+    val consumer = HtmlBuilder(this, document)
     val result = render(consumer)
 
     element = result
@@ -29,6 +34,15 @@ abstract class Komponent {
   }
 
   abstract fun render(consumer: HtmlBuilder): HTMLElement
+
+  open fun style(className: String, vararg imports: CssStyle, block: CSSStyleDeclaration.() -> Unit = {}) {
+    val style = (document.createElement("div") as HTMLDivElement).style
+    for (imp in imports) {
+      imp(style)
+    }
+    block(style)
+    declaredStyles[className] = style
+  }
 
   open fun update() = refresh()
 

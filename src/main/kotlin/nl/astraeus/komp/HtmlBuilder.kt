@@ -5,7 +5,6 @@ import kotlinx.html.Entities
 import kotlinx.html.Tag
 import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
-import kotlinx.html.consumers.onFinalize
 import org.w3c.dom.Document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
@@ -21,7 +20,10 @@ interface HtmlConsumer : TagConsumer<HTMLElement> {
   fun append(node: Node)
 }
 
-class HtmlBuilder(val document : Document) : HtmlConsumer {
+class HtmlBuilder(
+    val komponent: Komponent,
+    val document : Document
+) : HtmlConsumer {
   private val path = arrayListOf<HTMLElement>()
   private var lastLeaved : HTMLElement? = null
 
@@ -29,10 +31,6 @@ class HtmlBuilder(val document : Document) : HtmlConsumer {
     val element: HTMLElement = when {
       tag.namespace != null -> document.createElementNS(tag.namespace!!, tag.tagName).asDynamic()
       else -> document.createElement(tag.tagName) as HTMLElement
-    }
-
-    tag.attributesEntries.forEach {
-      element.setAttribute(it.key, it.value)
     }
 
     if (path.isNotEmpty()) {
@@ -67,6 +65,33 @@ class HtmlBuilder(val document : Document) : HtmlConsumer {
   override fun onTagEnd(tag: Tag) {
     if (path.isEmpty() || path.last().tagName.toLowerCase() != tag.tagName.toLowerCase()) {
       throw IllegalStateException("We haven't entered tag ${tag.tagName} but trying to leave")
+    }
+
+    val element = path.last()
+
+    tag.attributesEntries.forEach {
+      if (it.key == "class") {
+        val classes = it.value.split(" ")
+        val classNames = StringBuilder()
+
+        for (cls in classes) {
+          val cssStyle = komponent.declaredStyles[cls]
+
+          if (cssStyle != null) {
+            for (index in 0 until cssStyle.length) {
+              val propertyName = cssStyle.item(index)
+              element.style.setProperty(propertyName, cssStyle.getPropertyValue(propertyName))
+            }
+          } else {
+            classNames.append(cls)
+            classNames.append(" ")
+          }
+        }
+
+        element.className = classNames.toString()
+      } else {
+        element.setAttribute(it.key, it.value)
+      }
     }
 
     lastLeaved = path.removeAt(path.lastIndex)
@@ -120,50 +145,3 @@ class HtmlBuilder(val document : Document) : HtmlConsumer {
   private fun HTMLElement.asR(): HTMLElement = this.asDynamic()
 
 }
-
-fun Document.createTree() : TagConsumer<HTMLElement> = HtmlBuilder(this)
-val Document.create : TagConsumer<HTMLElement>
-  get() = HtmlBuilder(this)
-
-fun Node.append(block: TagConsumer<HTMLElement>.() -> Unit): List<HTMLElement> =
-    ArrayList<HTMLElement>().let { result ->
-      ownerDocumentExt.createTree().onFinalize { it, partial ->
-        if (!partial) {
-          result.add(it); appendChild(it)
-        }
-      }.block()
-
-      result
-    }
-
-fun Node.prepend(block: TagConsumer<HTMLElement>.() -> Unit): List<HTMLElement> =
-    ArrayList<HTMLElement>().let { result ->
-      ownerDocumentExt.createTree().onFinalize { it, partial ->
-        if (!partial) {
-          result.add(it)
-          insertBefore(it, firstChild)
-        }
-      }.block()
-
-      result
-    }
-
-val HTMLElement.append: TagConsumer<HTMLElement>
-  get() = ownerDocumentExt.createTree().onFinalize { element, partial ->
-    if (!partial) {
-      this@append.appendChild(element)
-    }
-  }
-
-val HTMLElement.prepend: TagConsumer<HTMLElement>
-  get() = ownerDocumentExt.createTree().onFinalize { element, partial ->
-    if (!partial) {
-      this@prepend.insertBefore(element, this@prepend.firstChild)
-    }
-  }
-
-private val Node.ownerDocumentExt: Document
-  get() = when {
-    this is Document -> this
-    else             -> ownerDocument ?: throw IllegalStateException("Node has no ownerDocument")
-  }
