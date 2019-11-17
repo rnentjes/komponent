@@ -26,14 +26,15 @@ abstract class Komponent {
 
   open fun create(): HTMLElement {
     val consumer = HtmlBuilder(this, document)
-    val result = render(consumer)
+    consumer.render()
+    val result = consumer.finalize()
 
     element = result
 
     return result
   }
 
-  abstract fun render(consumer: HtmlBuilder): HTMLElement
+  abstract fun HtmlBuilder.render()
 
   open fun style(className: String, vararg imports: CssStyle, block: CSSStyleDeclaration.() -> Unit = {}) {
     val style = (document.createElement("div") as HTMLDivElement).style
