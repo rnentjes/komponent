@@ -5,15 +5,12 @@ import kotlinx.html.Entities
 import kotlinx.html.Tag
 import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
-import org.w3c.dom.Attr
 import org.w3c.dom.Document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.asList
 import org.w3c.dom.css.CSSStyleDeclaration
-import org.w3c.dom.css.get
 import org.w3c.dom.events.Event
-import org.w3c.dom.get
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun HTMLElement.setEvent(name: String, noinline callback : (Event) -> Unit) : Unit {
