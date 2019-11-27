@@ -9,6 +9,7 @@ import org.w3c.dom.Document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.asList
+import org.w3c.dom.css.get
 import org.w3c.dom.events.Event
 
 @Suppress("NOTHING_TO_INLINE")
@@ -71,7 +72,7 @@ class HtmlBuilder(
 
     tag.attributesEntries.forEach {
       if (it.key == "class") {
-        val classes = it.value.split(" ")
+        val classes = it.value.split(Regex("\\s+"))
         val classNames = StringBuilder()
 
         for (cls in classes) {
@@ -80,6 +81,9 @@ class HtmlBuilder(
           if (cssStyle != null) {
             for (index in 0 until cssStyle.length) {
               val propertyName = cssStyle.item(index)
+              if (Komponent.logRenderEvent) {
+                console.log("Apply style [$cls] => $propertyName: ${cssStyle.getPropertyValue(propertyName)}")
+              }
               element.style.setProperty(propertyName, cssStyle.getPropertyValue(propertyName))
             }
           } else {

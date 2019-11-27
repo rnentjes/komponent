@@ -36,7 +36,7 @@ abstract class Komponent {
 
   abstract fun HtmlBuilder.render()
 
-  open fun style(className: String, vararg imports: CssStyle, block: CSSStyleDeclaration.() -> Unit = {}) {
+  open fun style(className: String, vararg imports: CssStyle, block: CssStyle = {}) {
     val style = (document.createElement("div") as HTMLDivElement).style
     for (imp in imports) {
       imp(style)
