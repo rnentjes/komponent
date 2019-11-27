@@ -5,12 +5,15 @@ import kotlinx.html.Entities
 import kotlinx.html.Tag
 import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
+import org.w3c.dom.Attr
 import org.w3c.dom.Document
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.asList
+import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.css.get
 import org.w3c.dom.events.Event
+import org.w3c.dom.get
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun HTMLElement.setEvent(name: String, noinline callback : (Event) -> Unit) : Unit {
@@ -19,6 +22,14 @@ private inline fun HTMLElement.setEvent(name: String, noinline callback : (Event
 
 interface HtmlConsumer : TagConsumer<HTMLElement> {
   fun append(node: Node)
+}
+
+fun HTMLElement.setStyles(cssStyle: CSSStyleDeclaration) {
+  for (index in 0 until cssStyle.length) {
+    val propertyName = cssStyle.item(index)
+
+    style.setProperty(propertyName, cssStyle.getPropertyValue(propertyName))
+  }
 }
 
 class HtmlBuilder(
@@ -79,12 +90,26 @@ class HtmlBuilder(
           val cssStyle = komponent.declaredStyles[cls]
 
           if (cssStyle != null) {
-            for (index in 0 until cssStyle.length) {
-              val propertyName = cssStyle.item(index)
-              if (Komponent.logRenderEvent) {
-                console.log("Apply style [$cls] => $propertyName: ${cssStyle.getPropertyValue(propertyName)}")
+            if (cls.endsWith(":hover")) {
+              val oldOnMouseOver = element.onmouseover
+              val oldOnMouseOut = element.onmouseout
+
+              element.onmouseover = {
+                element.setStyles(cssStyle)
+
+                oldOnMouseOver?.invoke(it)
               }
-              element.style.setProperty(propertyName, cssStyle.getPropertyValue(propertyName))
+              element.onmouseout = {
+                cls.split(':').firstOrNull()?.let {
+                  komponent.declaredStyles[it]?.let { cssStyle ->
+                    element.setStyles(cssStyle)
+                  }
+                }
+
+                oldOnMouseOut?.invoke(it)
+              }
+            } else {
+              element.setStyles(cssStyle)
             }
           } else {
             classNames.append(cls)
