@@ -11,6 +11,7 @@ import org.w3c.dom.Node
 import org.w3c.dom.asList
 import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.events.Event
+import kotlin.browser.document
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun HTMLElement.setEvent(name: String, noinline callback : (Event) -> Unit) : Unit {
@@ -139,7 +140,7 @@ class HtmlBuilder(
     // stupid hack as browsers doesn't support createEntityReference
     val s = document.createElement("span") as HTMLElement
     s.innerHTML = entity.text
-    path.last().appendChild(s.childNodes.asList().filter { it.nodeType == Node.TEXT_NODE }.first())
+    path.last().appendChild(s.childNodes.asList().first { it.nodeType == Node.TEXT_NODE })
 
     // other solution would be
     //        pathLast().innerHTML += entity.text
@@ -170,4 +171,11 @@ class HtmlBuilder(
   @Suppress("UNCHECKED_CAST")
   private fun HTMLElement.asR(): HTMLElement = this.asDynamic()
 
+  companion object {
+    fun create(content: HtmlBuilder.() -> Unit) : HTMLElement {
+      val consumer = HtmlBuilder(DummyKomponent(), document)
+      content.invoke(consumer)
+      return consumer.finalize()
+    }
+  }
 }

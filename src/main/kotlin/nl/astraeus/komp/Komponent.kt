@@ -1,6 +1,7 @@
 package nl.astraeus.komp
 
 import kotlinx.html.Tag
+import kotlinx.html.div
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
@@ -17,6 +18,14 @@ fun Tag.include(component: Komponent) {
 
   if (consumer is HtmlBuilder && element != null) {
     consumer.append(element)
+  }
+}
+
+class DummyKomponent: Komponent() {
+  override fun HtmlBuilder.render() {
+    div {
+      + "dummy"
+    }
   }
 }
 
