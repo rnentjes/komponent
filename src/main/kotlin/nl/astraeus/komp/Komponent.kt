@@ -11,7 +11,11 @@ import kotlin.browser.document
 public typealias CssStyle = CSSStyleDeclaration.() -> Unit
 
 fun Tag.include(component: Komponent) {
-  component.update()
+  if (component.element != null) {
+    component.update()
+  } else {
+    component.refresh()
+  }
 
   val consumer = this.consumer
   val element = component.element
