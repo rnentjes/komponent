@@ -20,7 +20,8 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'nl.astraeus'
-version '0.1.16-SNAPSHOT'
+version '0.1.17-SNAPSHOT'
+/*
 
 kotlin {
     target {
@@ -33,6 +34,7 @@ kotlin {
 }
 
 compileKotlinJs.kotlinOptions.moduleKind = "umd"
+*/
 
 idea {
     module {

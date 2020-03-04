@@ -7,6 +7,12 @@
         <element id="module-output" name="komp_main" />
       </root>
     </artifact>
+    <artifact type="jar" name="komp-0.1.17-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-0.1.17-SNAPSHOT.jar">
+        <element id="module-output" name="komp_main" />
+      </root>
+    </artifact>
   </component>
   <component name="CheckStyle-IDEA">
     <option name="configuration">
