@@ -1,21 +1,20 @@
 package nl.astraeus.komp
 
-import kotlinx.html.DefaultUnsafe
-import kotlinx.html.Entities
-import kotlinx.html.Tag
-import kotlinx.html.TagConsumer
-import kotlinx.html.Unsafe
-import org.w3c.dom.Document
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.Node
-import org.w3c.dom.asList
+import kotlinx.html.*
+import org.w3c.dom.*
 import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.events.Event
 import kotlin.browser.document
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun HTMLElement.setEvent(name: String, noinline callback : (Event) -> Unit) : Unit {
-  asDynamic()[name] = callback
+  val eventName = if (name.startsWith("on")) { name.substring(2) } else { name }
+  addEventListener(eventName, callback, null)
+  //asDynamic()[name] = callback
+  val events = getAttribute("data-komp-events") ?: ""
+
+  setAttribute("data-komp-events", if (events.isBlank()) { eventName } else { "$events,$eventName" })
+  asDynamic()["event-$eventName"] = callback
 }
 
 interface HtmlConsumer : TagConsumer<HTMLElement> {
@@ -73,13 +72,27 @@ class HtmlBuilder(
   }
 
   override fun onTagEnd(tag: Tag) {
+    var hash = 0
     if (path.isEmpty() || path.last().tagName.toLowerCase() != tag.tagName.toLowerCase()) {
       throw IllegalStateException("We haven't entered tag ${tag.tagName} but trying to leave")
     }
 
     val element = path.last()
 
+    for (index in 0 until element.childNodes.length) {
+      val child = element.childNodes[index]
+      if (child is HTMLElement) {
+
+        hash = hash * 37 + (child.getAttribute("data-komp-hash")?.toInt() ?: 0)
+      } else {
+        hash = hash * 37 + (child?.textContent?.hashCode() ?: 0)
+      }
+    }
+
     tag.attributesEntries.forEach {
+      hash = hash * 37 + it.key.hashCode()
+      hash = hash * 37 + it.value.hashCode()
+
       if (it.key == "class") {
         val classes = it.value.split(Regex("\\s+"))
         val classNames = StringBuilder()
@@ -120,6 +133,8 @@ class HtmlBuilder(
         element.setAttribute(it.key, it.value)
       }
     }
+
+    element.setAttribute("data-komp-hash", hash.toString())
 
     lastLeaved = path.removeAt(path.lastIndex)
   }

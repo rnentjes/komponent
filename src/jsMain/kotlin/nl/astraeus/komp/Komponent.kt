@@ -33,6 +33,11 @@ class DummyKomponent: Komponent() {
   }
 }
 
+enum class UpdateStrategy {
+  REPLACE,
+  DOM_DIFF
+}
+
 abstract class Komponent {
   var element: Node? = null
   val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
@@ -68,10 +73,18 @@ abstract class Komponent {
     val newElement = create()
 
     if (oldElement != null) {
+      if (updateStrategy == UpdateStrategy.REPLACE) {
         if (logReplaceEvent) {
           console.log("Replacing", oldElement, newElement)
         }
         oldElement.parentNode?.replaceChild(newElement, oldElement)
+        element = newElement
+      } else {
+        if (logReplaceEvent) {
+          console.log("DomDiffing", oldElement, newElement)
+        }
+        element = DiffPatch.updateNode(oldElement, newElement)
+      }
     }
   }
 
@@ -91,6 +104,7 @@ abstract class Komponent {
   companion object {
     var logRenderEvent = false
     var logReplaceEvent = false
+    var updateStrategy = UpdateStrategy.DOM_DIFF
 
     fun create(parent: HTMLElement, component: Komponent, insertAsFirst: Boolean = false) {
       val element = component.create()
@@ -102,4 +116,5 @@ abstract class Komponent {
       }
     }
   }
+
 }
