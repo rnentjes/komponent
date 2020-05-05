@@ -7,14 +7,27 @@ import org.w3c.dom.events.Event
 import kotlin.browser.document
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun HTMLElement.setEvent(name: String, noinline callback : (Event) -> Unit) : Unit {
-  val eventName = if (name.startsWith("on")) { name.substring(2) } else { name }
+private inline fun HTMLElement.setEvent(name: String, noinline callback: (Event) -> Unit): Unit {
+  val eventName = if (name.startsWith("on")) {
+    name.substring(2)
+  } else {
+    name
+  }
   addEventListener(eventName, callback, null)
-  //asDynamic()[name] = callback
-  val events = getAttribute("data-komp-events") ?: ""
+  if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+    //asDynamic()[name] = callback
+    val events = getAttribute("data-komp-events") ?: ""
 
-  setAttribute("data-komp-events", if (events.isBlank()) { eventName } else { "$events,$eventName" })
-  asDynamic()["event-$eventName"] = callback
+    setAttribute(
+        "data-komp-events",
+        if (events.isBlank()) {
+          eventName
+        } else {
+          "$events,$eventName"
+        }
+    )
+    asDynamic()["event-$eventName"] = callback
+  }
 }
 
 interface HtmlConsumer : TagConsumer<HTMLElement> {
@@ -31,15 +44,15 @@ fun HTMLElement.setStyles(cssStyle: CSSStyleDeclaration) {
 
 class HtmlBuilder(
     val komponent: Komponent,
-    val document : Document
+    val document: Document
 ) : HtmlConsumer {
   private val path = arrayListOf<HTMLElement>()
-  private var lastLeaved : HTMLElement? = null
+  private var lastLeaved: HTMLElement? = null
 
   override fun onTagStart(tag: Tag) {
     val element: HTMLElement = when {
       tag.namespace != null -> document.createElementNS(tag.namespace!!, tag.tagName).asDynamic()
-      else -> document.createElement(tag.tagName) as HTMLElement
+      else                  -> document.createElement(tag.tagName) as HTMLElement
     }
 
     if (path.isNotEmpty()) {
@@ -51,9 +64,9 @@ class HtmlBuilder(
 
   override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) {
     when {
-      path.isEmpty() -> throw IllegalStateException("No current tag")
+      path.isEmpty()                                                 -> throw IllegalStateException("No current tag")
       path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-      else -> path.last().let { node ->
+      else                                                           -> path.last().let { node ->
         if (value == null) {
           node.removeAttribute(attribute)
         } else {
@@ -65,34 +78,36 @@ class HtmlBuilder(
 
   override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
     when {
-      path.isEmpty() -> throw IllegalStateException("No current tag")
+      path.isEmpty()                                                 -> throw IllegalStateException("No current tag")
       path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-      else -> path.last().setEvent(event, value)
+      else                                                           -> path.last().setEvent(event, value)
     }
   }
 
   override fun onTagEnd(tag: Tag) {
-    var hash = 0
+    var hash: UInt = 0.toUInt()
     if (path.isEmpty() || path.last().tagName.toLowerCase() != tag.tagName.toLowerCase()) {
       throw IllegalStateException("We haven't entered tag ${tag.tagName} but trying to leave")
     }
 
     val element = path.last()
 
-    for (index in 0 until element.childNodes.length) {
-      val child = element.childNodes[index]
-      if (child is HTMLElement) {
-
-        hash = hash * 37 + (child.getAttribute("data-komp-hash")?.toInt() ?: 0)
-      } else {
-        hash = hash * 37 + (child?.textContent?.hashCode() ?: 0)
+    if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+      for (index in 0 until element.childNodes.length) {
+        val child = element.childNodes[index]
+        if (child is HTMLElement) {
+          hash = hash * 37.toUInt() + (child.getAttribute(DiffPatch.HASH_ATTRIBUTE)?.toUInt(16) ?: 0.toUInt())
+        } else {
+          hash = hash * 37.toUInt() + (child?.textContent?.hashCode()?.toUInt() ?: 0.toUInt())
+        }
       }
     }
 
     tag.attributesEntries.forEach {
-      hash = hash * 37 + it.key.hashCode()
-      hash = hash * 37 + it.value.hashCode()
-
+      val key_value = "${it.key}-${it.value}"
+      if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+        hash = hash * 37.toUInt() + key_value.hashCode().toUInt()
+      }
       if (it.key == "class") {
         val classes = it.value.split(Regex("\\s+"))
         val classNames = StringBuilder()
@@ -134,8 +149,9 @@ class HtmlBuilder(
       }
     }
 
-    element.setAttribute("data-komp-hash", hash.toString())
-
+    if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+      element.setAttribute(DiffPatch.HASH_ATTRIBUTE, hash.toString(16))
+    }
     lastLeaved = path.removeAt(path.lastIndex)
   }
 
@@ -187,7 +203,7 @@ class HtmlBuilder(
   private fun HTMLElement.asR(): HTMLElement = this.asDynamic()
 
   companion object {
-    fun create(content: HtmlBuilder.() -> Unit) : HTMLElement {
+    fun create(content: HtmlBuilder.() -> Unit): HTMLElement {
       val consumer = HtmlBuilder(DummyKomponent(), document)
       content.invoke(consumer)
       return consumer.finalize()

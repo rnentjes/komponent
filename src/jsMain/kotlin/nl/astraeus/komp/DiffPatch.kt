@@ -2,194 +2,229 @@ package nl.astraeus.komp
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
 
+
+private fun NodeList.findNodeWithHash(hash: String): HTMLElement? {
+  for (index in 0..this.length) {
+    val node = this[index]
+    if (node is HTMLElement && node.getAttribute(DiffPatch.HASH_ATTRIBUTE) == hash) {
+      return node
+    }
+  }
+
+  return null
+}
+
 object DiffPatch {
+  const val HASH_ATTRIBUTE = "data-komp-hash"
 
-    fun updateNode(oldNode: Node, newNode: Node): Node {
-        if (oldNode is HTMLElement && newNode is HTMLElement) {
-            if (oldNode.nodeName == newNode.nodeName) {
-                if (oldNode.getAttribute("data-komp-hash") != null &&
-                    oldNode.getAttribute("data-komp-hash") == newNode.getAttribute("data-komp-hash")) {
+  fun hashesMatch(oldNode: Node, newNode: Node): Boolean {
+    return (
+        oldNode is HTMLElement &&
+        newNode is HTMLElement &&
+        oldNode.nodeName == newNode.nodeName &&
+        oldNode.getAttribute(HASH_ATTRIBUTE) != null &&
+        oldNode.getAttribute(HASH_ATTRIBUTE) == newNode.getAttribute(HASH_ATTRIBUTE)
+           )
+  }
 
-                    if (Komponent.logReplaceEvent) {
-                        console.log("Skip node, hash equals", oldNode, newNode)
-                    }
-
-                    return oldNode
-                } else {
-                    if (Komponent.logReplaceEvent) {
-                        console.log("Update attributes", oldNode.innerHTML, newNode.innerHTML)
-                    }
-                    updateAttributes(oldNode, newNode);
-                    if (Komponent.logReplaceEvent) {
-                        console.log("Update children", oldNode.innerHTML, newNode.innerHTML)
-                    }
-                    updateChildren(oldNode, newNode)
-                    updateEvents(oldNode, newNode)
-                    return oldNode
-                }
-            } else {
-                if (Komponent.logReplaceEvent) {
-                    console.log("Replace node ee", oldNode.innerHTML, newNode.innerHTML)
-                }
-                replaceNode(oldNode, newNode)
-                return newNode
-            }
-        } else {
-            if (oldNode.nodeType == newNode.nodeType && oldNode.nodeType == 3.toShort()) {
-                if (oldNode.textContent != newNode.textContent) {
-                    if (Komponent.logReplaceEvent) {
-                        console.log("Updating text content", oldNode, newNode)
-                    }
-                    oldNode.textContent = newNode.textContent
-                    return oldNode
-                }
-            }
-
-            if (Komponent.logReplaceEvent) {
-                console.log("Replace node", oldNode, newNode)
-            }
-            replaceNode(oldNode, newNode)
-            return newNode
-
-        }
+  fun updateNode(oldNode: Node, newNode: Node): Node {
+    if (hashesMatch(oldNode, newNode)) {
+      return oldNode
     }
 
-    private fun updateAttributes(oldNode: HTMLElement, newNode: HTMLElement) {
-        // removed attributes
-        for (index in 0 until oldNode.attributes.length) {
-            val attr = oldNode.attributes[index]
-
-            if (attr != null && newNode.attributes[attr.name] == null) {
-                oldNode.removeAttribute(attr.name)
-            }
-        }
-
-        for (index in 0 until newNode.attributes.length) {
-            val attr = newNode.attributes[index]
-
-            if (attr != null) {
-                val oldAttr = oldNode.attributes[attr.name]
-
-                if (oldAttr == null || oldAttr.value != attr.value) {
-                    oldNode.setAttribute(attr.name, attr.value)
-                }
-            }
-        }
-    }
-
-    private fun updateChildren(oldNode: HTMLElement, newNode: HTMLElement) {
-        // todo: add 1 look ahead/back
-        var oldIndex = 0
-        var newIndex = 0
-
+    if (oldNode.nodeType == newNode.nodeType && oldNode.nodeType == 3.toShort()) {
+      if (oldNode.textContent != newNode.textContent) {
         if (Komponent.logReplaceEvent) {
-            console.log("updateChildren old/new count", oldNode.childNodes.length, newNode.childNodes.length)
+          console.log("Updating text content", oldNode, newNode)
         }
+        oldNode.textContent = newNode.textContent
+        return oldNode
+      }
+    }
 
-        while(newIndex < newNode.childNodes.length) {
-            if (Komponent.logReplaceEvent) {
-                console.log(">>> updateChildren old/new count", oldNode.childNodes, newNode.childNodes)
-                console.log("Update Old/new", oldIndex, newIndex)
-            }
-            val newChildNode = newNode.childNodes[newIndex]
+    if (oldNode is HTMLElement && newNode is HTMLElement) {
+      if (oldNode.nodeName == newNode.nodeName) {
+        if (Komponent.logReplaceEvent) {
+          console.log("Update attributes", oldNode.innerHTML, newNode.innerHTML)
+        }
+        updateAttributes(oldNode, newNode);
+        if (Komponent.logReplaceEvent) {
+          console.log("Update children", oldNode.innerHTML, newNode.innerHTML)
+        }
+        updateChildren(oldNode, newNode)
+        updateEvents(oldNode, newNode)
+        return oldNode
+      }
+    }
 
-            if (oldIndex < oldNode.childNodes.length) {
-                val oldChildNode = oldNode.childNodes[oldIndex]
+    if (Komponent.logReplaceEvent) {
+      console.log("Replace node", oldNode, newNode)
+    }
+    replaceNode(oldNode, newNode)
+    return newNode
+  }
 
-                if (oldChildNode != null && newChildNode != null) {
-                    if (Komponent.logReplaceEvent) {
-                        console.log("Update node Old/new", oldChildNode, newChildNode)
-                    }
+  private fun updateAttributes(oldNode: HTMLElement, newNode: HTMLElement) {
+    // removed attributes
+    for (index in 0 until oldNode.attributes.length) {
+      val attr = oldNode.attributes[index]
 
-                    updateNode(oldChildNode, newChildNode)
+      if (attr != null && newNode.attributes[attr.name] == null) {
+        oldNode.removeAttribute(attr.name)
+      }
+    }
 
-                    if (Komponent.logReplaceEvent) {
-                        console.log("--- Updated Old/new", oldNode.children, newNode.children)
-                    }
-                } else {
-                    if (Komponent.logReplaceEvent) {
-                        console.log("Null node", oldChildNode, newChildNode)
-                    }
-                }
-            } else {
+    for (index in 0 until newNode.attributes.length) {
+      val attr = newNode.attributes[index]
+
+      if (attr != null) {
+        val oldAttr = oldNode.attributes[attr.name]
+
+        if (oldAttr == null || oldAttr.value != attr.value) {
+          oldNode.setAttribute(attr.name, attr.value)
+        }
+      }
+    }
+  }
+
+  private fun updateChildren(oldNode: HTMLElement, newNode: HTMLElement) {
+    var oldIndex = 0
+    var newIndex = 0
+
+    if (Komponent.logReplaceEvent) {
+      console.log("updateChildren old/new count", oldNode.childNodes.length, newNode.childNodes.length)
+    }
+
+    while (newIndex < newNode.childNodes.length) {
+      if (Komponent.logReplaceEvent) {
+        console.log(">>> updateChildren old/new count", oldNode.childNodes, newNode.childNodes)
+        console.log("Update Old/new", oldIndex, newIndex)
+      }
+      val newChildNode = newNode.childNodes[newIndex]
+
+      if (oldIndex < oldNode.childNodes.length) {
+        val oldChildNode = oldNode.childNodes[oldIndex]
+
+
+        if (oldChildNode != null && newChildNode != null) {
+          if (!hashesMatch(oldChildNode, newChildNode) && newChildNode is HTMLElement && oldChildNode is HTMLElement) {
+            val oldHash = oldChildNode.getAttribute("data-komp-hash")
+            val newHash = newChildNode.getAttribute("data-komp-hash")
+
+            if (oldHash != null) {
+              val nodeWithHash = oldNode.childNodes.findNodeWithHash(oldHash)
+
+              if (nodeWithHash != null) {
                 if (Komponent.logReplaceEvent) {
-                    console.log("Append Old/new/node", oldIndex, newIndex, newChildNode)
+                  console.log(">-> swap nodes", oldNode)
                 }
-                oldNode.append(newChildNode)
-            }
 
-            if (Komponent.logReplaceEvent) {
-                console.log("<<< Updated Old/new", oldNode.children, newNode.children)
-            }
+                oldNode.replaceChild(oldChildNode, nodeWithHash)
+                oldNode.insertBefore(nodeWithHash, oldNode.childNodes[oldIndex])
 
-            oldIndex++
-            newIndex++
-        }
-
-        while(oldIndex < oldNode.childNodes.length) {
-            oldNode.childNodes[oldIndex]?.also {
                 if (Komponent.logReplaceEvent) {
-                    console.log("Remove old node", it)
+                  console.log(">-> swapped nodes", oldNode)
                 }
-
-                oldNode.removeChild(it)
+              }
+            } else if (newHash != null) {
+              // if node found after current new index, insert new node
             }
-            oldIndex++
+          }
+
+          if (Komponent.logReplaceEvent) {
+            console.log("Update node Old/new", oldChildNode, newChildNode)
+          }
+
+          updateNode(oldChildNode, newChildNode)
+
+          if (Komponent.logReplaceEvent) {
+            console.log("--- Updated Old/new", oldNode.children, newNode.children)
+          }
+        } else {
+          if (Komponent.logReplaceEvent) {
+            console.log("Null node", oldChildNode, newChildNode)
+          }
         }
+      } else {
+        if (Komponent.logReplaceEvent) {
+          console.log("Append Old/new/node", oldIndex, newIndex, newChildNode)
+        }
+        oldNode.append(newChildNode)
+      }
+
+      if (Komponent.logReplaceEvent) {
+        console.log("<<< Updated Old/new", oldNode.children, newNode.children)
+      }
+
+      oldIndex++
+      newIndex++
     }
 
-    private fun updateEvents(oldNode: HTMLElement, newNode: HTMLElement) {
-        val oldEvents = mutableListOf<String>()
-        oldEvents.addAll((oldNode.getAttribute("data-komp-events") ?: "").split(","))
-
-        val newEvents = (newNode.getAttribute("data-komp-events") ?: "").split(",")
-
-        for (event in newEvents) {
-            if (event.isNotBlank()) {
-                val oldNodeEvent = oldNode.asDynamic()["event-$event"]
-                val newNodeEvent = newNode.asDynamic()["event-$event"]
-                if (oldNodeEvent != null) {
-                    oldNode.removeEventListener(event, oldNodeEvent as ((Event) -> Unit), null)
-                }
-                if (newNodeEvent != null) {
-                    oldNode.addEventListener(event, newNodeEvent as ((Event) -> Unit), null)
-                    oldNode.asDynamic()["event-$event"] = newNodeEvent
-                }
-                oldEvents.remove(event)
-            }
+    while (oldIndex < oldNode.childNodes.length) {
+      oldNode.childNodes[oldIndex]?.also {
+        if (Komponent.logReplaceEvent) {
+          console.log("Remove old node", it)
         }
 
-        for (event in oldEvents) {
-            if (event.isNotBlank()) {
-                val oldNodeEvent = oldNode.asDynamic()["event-$event"]
-                if (oldNodeEvent != null) {
-                    oldNode.removeEventListener(event, oldNodeEvent as ((Event) -> Unit), null)
-                }
-            }
-        }
+        oldNode.removeChild(it)
+      }
+      oldIndex++
+    }
+  }
 
-        newNode.getAttribute("data-komp-events")?.also {
-            oldNode.setAttribute("data-komp-events", it)
+  private fun updateEvents(oldNode: HTMLElement, newNode: HTMLElement) {
+    val oldEvents = mutableListOf<String>()
+    oldEvents.addAll((oldNode.getAttribute("data-komp-events") ?: "").split(","))
+
+    val newEvents = (newNode.getAttribute("data-komp-events") ?: "").split(",")
+
+    for (event in newEvents) {
+      if (event.isNotBlank()) {
+        val oldNodeEvent = oldNode.asDynamic()["event-$event"]
+        val newNodeEvent = newNode.asDynamic()["event-$event"]
+        if (oldNodeEvent != null) {
+          oldNode.removeEventListener(event, oldNodeEvent as ((Event) -> Unit), null)
         }
+        if (newNodeEvent != null) {
+          oldNode.addEventListener(event, newNodeEvent as ((Event) -> Unit), null)
+          oldNode.asDynamic()["event-$event"] = newNodeEvent
+        }
+        oldEvents.remove(event)
+      }
     }
 
-    private fun replaceNode(oldNode: Node, newNode: Node) {
-        oldNode.parentNode?.also { parent ->
-            val clone = newNode.cloneNode(true)
-            if (newNode is HTMLElement) {
-                val events = (newNode.getAttribute("data-komp-events") ?: "").split(",")
-                for (event in events) {
-                    val foundEvent = newNode.asDynamic()["event-$event"]
-                    if (foundEvent != null) {
-                        clone.addEventListener(event, foundEvent as ((Event) -> Unit), null)
-                    }
-                }
-            }
-            parent.replaceChild(clone, oldNode)
+    for (event in oldEvents) {
+      if (event.isNotBlank()) {
+        val oldNodeEvent = oldNode.asDynamic()["event-$event"]
+        if (oldNodeEvent != null) {
+          oldNode.removeEventListener(event, oldNodeEvent as ((Event) -> Unit), null)
         }
+      }
     }
+
+    newNode.getAttribute("data-komp-events")?.also {
+      oldNode.setAttribute("data-komp-events", it)
+    }
+  }
+
+  private fun replaceNode(oldNode: Node, newNode: Node) {
+    oldNode.parentNode?.also { parent ->
+      val clone = newNode.cloneNode(true)
+      if (newNode is HTMLElement) {
+        val events = (newNode.getAttribute("data-komp-events") ?: "").split(",")
+        for (event in events) {
+          val foundEvent = newNode.asDynamic()["event-$event"]
+          if (foundEvent != null) {
+            clone.addEventListener(event, foundEvent as ((Event) -> Unit), null)
+          }
+        }
+      }
+      parent.replaceChild(clone, oldNode)
+    }
+  }
 
 }
