@@ -16,10 +16,10 @@ private inline fun HTMLElement.setEvent(name: String, noinline callback: (Event)
   addEventListener(eventName, callback, null)
   if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
     //asDynamic()[name] = callback
-    val events = getAttribute("data-komp-events") ?: ""
+    val events = getAttribute(EVENT_ATTRIBUTE) ?: ""
 
     setAttribute(
-        "data-komp-events",
+      EVENT_ATTRIBUTE,
         if (events.isBlank()) {
           eventName
         } else {
@@ -85,7 +85,7 @@ class HtmlBuilder(
   }
 
   override fun onTagEnd(tag: Tag) {
-    var hash: UInt = 0.toUInt()
+    var hash = 0
     if (path.isEmpty() || path.last().tagName.toLowerCase() != tag.tagName.toLowerCase()) {
       throw IllegalStateException("We haven't entered tag ${tag.tagName} but trying to leave")
     }
@@ -96,17 +96,17 @@ class HtmlBuilder(
       for (index in 0 until element.childNodes.length) {
         val child = element.childNodes[index]
         if (child is HTMLElement) {
-          hash = hash * 37.toUInt() + (child.getAttribute(DiffPatch.HASH_ATTRIBUTE)?.toUInt(16) ?: 0.toUInt())
+          hash = hash * 37 + child.getKompHash()
         } else {
-          hash = hash * 37.toUInt() + (child?.textContent?.hashCode()?.toUInt() ?: 0.toUInt())
+          hash = hash * 37 + (child?.textContent?.hashCode() ?: 0)
         }
       }
     }
 
     tag.attributesEntries.forEach {
-      val key_value = "${it.key}-${it.value}"
       if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-        hash = hash * 37.toUInt() + key_value.hashCode().toUInt()
+        val key_value = "${it.key}-${it.value}"
+        hash = hash * 37 + key_value.hashCode()
       }
       if (it.key == "class") {
         val classes = it.value.split(Regex("\\s+"))
@@ -150,7 +150,8 @@ class HtmlBuilder(
     }
 
     if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-      element.setAttribute(DiffPatch.HASH_ATTRIBUTE, hash.toString(16))
+      element.setKompHash(hash)
+      //element.setAttribute(DiffPatch.HASH_ATTRIBUTE, hash.toString(16))
     }
     lastLeaved = path.removeAt(path.lastIndex)
   }

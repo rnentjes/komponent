@@ -6,33 +6,43 @@ import org.w3c.dom.NodeList
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
 
+const val HASH_VALUE = "komp-hash-value"
+//const val HASH_ATTRIBUTE = "data-komp-hash"
+const val EVENT_ATTRIBUTE = "data-komp-events"
 
-private fun NodeList.findNodeWithHash(hash: String): HTMLElement? {
+fun Node.getKompHash(): Int = this.asDynamic()[HASH_VALUE] as? Int? ?: -1
+
+fun Node.setKompHash(hash: Int) {
+  this.asDynamic()[HASH_VALUE] = hash
+}
+
+private fun NodeList.findNodeHashIndex(hash: Int): Int {
   for (index in 0..this.length) {
     val node = this[index]
-    if (node is HTMLElement && node.getAttribute(DiffPatch.HASH_ATTRIBUTE) == hash) {
-      return node
+    if (node is HTMLElement && node.getKompHash() == hash) {
+      return index
     }
   }
 
-  return null
+  return -1
 }
 
 object DiffPatch {
-  const val HASH_ATTRIBUTE = "data-komp-hash"
 
   fun hashesMatch(oldNode: Node, newNode: Node): Boolean {
     return (
         oldNode is HTMLElement &&
         newNode is HTMLElement &&
         oldNode.nodeName == newNode.nodeName &&
-        oldNode.getAttribute(HASH_ATTRIBUTE) != null &&
-        oldNode.getAttribute(HASH_ATTRIBUTE) == newNode.getAttribute(HASH_ATTRIBUTE)
+        oldNode.getKompHash() == newNode.getKompHash()
            )
   }
 
   fun updateNode(oldNode: Node, newNode: Node): Node {
     if (hashesMatch(oldNode, newNode)) {
+      if (Komponent.logReplaceEvent) {
+        console.log("Hashes match", oldNode, newNode, oldNode.getKompHash(), newNode.getKompHash())
+      }
       return oldNode
     }
 
@@ -42,8 +52,8 @@ object DiffPatch {
           console.log("Updating text content", oldNode, newNode)
         }
         oldNode.textContent = newNode.textContent
-        return oldNode
       }
+      return oldNode
     }
 
     if (oldNode is HTMLElement && newNode is HTMLElement) {
@@ -57,12 +67,13 @@ object DiffPatch {
         }
         updateChildren(oldNode, newNode)
         updateEvents(oldNode, newNode)
+        oldNode.setKompHash(newNode.getKompHash())
         return oldNode
       }
     }
 
     if (Komponent.logReplaceEvent) {
-      console.log("Replace node", oldNode, newNode)
+      console.log("Replace node (type)", oldNode.nodeType, oldNode, newNode)
     }
     replaceNode(oldNode, newNode)
     return newNode
@@ -96,12 +107,11 @@ object DiffPatch {
     var newIndex = 0
 
     if (Komponent.logReplaceEvent) {
-      console.log("updateChildren old/new count", oldNode.childNodes.length, newNode.childNodes.length)
+      console.log("updateChildren HTML old/new", oldNode.innerHTML, newNode.innerHTML)
     }
 
     while (newIndex < newNode.childNodes.length) {
       if (Komponent.logReplaceEvent) {
-        console.log(">>> updateChildren old/new count", oldNode.childNodes, newNode.childNodes)
         console.log("Update Old/new", oldIndex, newIndex)
       }
       val newChildNode = newNode.childNodes[newIndex]
@@ -109,41 +119,77 @@ object DiffPatch {
       if (oldIndex < oldNode.childNodes.length) {
         val oldChildNode = oldNode.childNodes[oldIndex]
 
-
         if (oldChildNode != null && newChildNode != null) {
-          if (!hashesMatch(oldChildNode, newChildNode) && newChildNode is HTMLElement && oldChildNode is HTMLElement) {
-            val oldHash = oldChildNode.getAttribute("data-komp-hash")
-            val newHash = newChildNode.getAttribute("data-komp-hash")
-
-            if (oldHash != null) {
-              val nodeWithHash = oldNode.childNodes.findNodeWithHash(oldHash)
-
-              if (nodeWithHash != null) {
-                if (Komponent.logReplaceEvent) {
-                  console.log(">-> swap nodes", oldNode)
-                }
-
-                oldNode.replaceChild(oldChildNode, nodeWithHash)
-                oldNode.insertBefore(nodeWithHash, oldNode.childNodes[oldIndex])
-
-                if (Komponent.logReplaceEvent) {
-                  console.log(">-> swapped nodes", oldNode)
-                }
-              }
-            } else if (newHash != null) {
-              // if node found after current new index, insert new node
-            }
+/*
+          if (Komponent.logReplaceEvent) {
+            console.log(">>> updateChildren old/new", oldChildNode, newChildNode)
           }
+*/
 
           if (Komponent.logReplaceEvent) {
             console.log("Update node Old/new", oldChildNode, newChildNode)
           }
 
-          updateNode(oldChildNode, newChildNode)
+          if (!hashesMatch(oldChildNode, newChildNode) && newChildNode is HTMLElement && oldChildNode is HTMLElement) {
+            if (Komponent.logReplaceEvent) {
+              console.log("Hashes don't match")
+            }
 
-          if (Komponent.logReplaceEvent) {
-            console.log("--- Updated Old/new", oldNode.children, newNode.children)
+            val oldHash = oldChildNode.getKompHash()
+            val newHash = newChildNode.getKompHash()
+
+            if (newHash != null) {
+              val oldNodeWithNewHashIndex = oldNode.childNodes.findNodeHashIndex(newHash)
+
+              if (Komponent.logReplaceEvent) {
+                console.log("oldNodeWithNewHashIndex", newHash, oldNodeWithNewHashIndex)
+              }
+
+              if (oldNodeWithNewHashIndex > oldIndex) {
+                if (oldHash != null) {
+                  val newNodeWithOldHashIndex = newNode.childNodes.findNodeHashIndex(oldHash)
+
+                  // remove i.o. swap
+                  if (newNodeWithOldHashIndex == -1) {
+                    if (Komponent.logReplaceEvent) {
+                      console.log("Old node missing in new tree, remove node", oldChildNode)
+                    }
+                    oldNode.removeChild(oldChildNode)
+                    continue
+                  }
+                }
+                val nodeWithHash = oldNode.childNodes[oldNodeWithNewHashIndex]
+
+                if (Komponent.logReplaceEvent) {
+                  console.log("nodeWithHash", nodeWithHash)
+                }
+                if (nodeWithHash != null) {
+                  if (Komponent.logReplaceEvent) {
+                    console.log(">-> swap nodes", oldNode)
+                  }
+
+                  oldNode.insertBefore(nodeWithHash, oldNode.childNodes[oldIndex])
+
+                  if (Komponent.logReplaceEvent) {
+                    console.log(">-> swapped nodes", oldNode)
+                  }
+                  newIndex++
+                  oldIndex++
+                  continue
+                }
+              } else if (oldHash != null && newNode.childNodes.findNodeHashIndex(oldHash) > newIndex) {
+                if (Komponent.logReplaceEvent) {
+                  console.log("newNodeWithOldHashIndex", oldHash, newNode.childNodes.findNodeHashIndex(oldHash))
+                }
+
+                oldNode.insertBefore(newChildNode, oldChildNode)
+                oldIndex++
+                continue
+              }
+            }
           }
+
+          updateNode(oldChildNode, newChildNode)
         } else {
           if (Komponent.logReplaceEvent) {
             console.log("Null node", oldChildNode, newChildNode)
@@ -156,9 +202,11 @@ object DiffPatch {
         oldNode.append(newChildNode)
       }
 
+/*
       if (Komponent.logReplaceEvent) {
-        console.log("<<< Updated Old/new", oldNode.children, newNode.children)
+        console.log("<<< Updated Old/new", oldNode.innerHTML, newNode.innerHTML)
       }
+*/
 
       oldIndex++
       newIndex++
@@ -172,15 +220,14 @@ object DiffPatch {
 
         oldNode.removeChild(it)
       }
-      oldIndex++
     }
   }
 
   private fun updateEvents(oldNode: HTMLElement, newNode: HTMLElement) {
     val oldEvents = mutableListOf<String>()
-    oldEvents.addAll((oldNode.getAttribute("data-komp-events") ?: "").split(","))
+    oldEvents.addAll((oldNode.getAttribute(EVENT_ATTRIBUTE) ?: "").split(","))
 
-    val newEvents = (newNode.getAttribute("data-komp-events") ?: "").split(",")
+    val newEvents = (newNode.getAttribute(EVENT_ATTRIBUTE) ?: "").split(",")
 
     for (event in newEvents) {
       if (event.isNotBlank()) {
@@ -206,8 +253,8 @@ object DiffPatch {
       }
     }
 
-    newNode.getAttribute("data-komp-events")?.also {
-      oldNode.setAttribute("data-komp-events", it)
+    newNode.getAttribute(EVENT_ATTRIBUTE)?.also {
+      oldNode.setAttribute(EVENT_ATTRIBUTE, it)
     }
   }
 
@@ -215,7 +262,7 @@ object DiffPatch {
     oldNode.parentNode?.also { parent ->
       val clone = newNode.cloneNode(true)
       if (newNode is HTMLElement) {
-        val events = (newNode.getAttribute("data-komp-events") ?: "").split(",")
+        val events = (newNode.getAttribute(EVENT_ATTRIBUTE) ?: "").split(",")
         for (event in events) {
           val foundEvent = newNode.asDynamic()["event-$event"]
           if (foundEvent != null) {

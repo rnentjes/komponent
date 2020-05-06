@@ -47,6 +47,10 @@ abstract class Komponent {
     consumer.render()
     val result = consumer.finalize()
 
+    if (logReplaceEvent) {
+      console.log("Element hash", result, result.getKompHash())
+    }
+
     element = result
 
     return result
