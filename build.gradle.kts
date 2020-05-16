@@ -1,17 +1,14 @@
 plugins {
-    kotlin("multiplatform") version "1.4-M2-eap-68"
+    kotlin("multiplatform") version "1.3.71"
     `maven-publish`
 }
 
 group = "nl.astraeus"
-version = "0.1.20-SNAPSHOT"
+version = "0.1.21-SNAPSHOT"
 
 repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
     mavenCentral()
-    maven {
-        url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-    }
+    jcenter()
 }
 
 kotlin {
@@ -21,6 +18,11 @@ kotlin {
     js {
         browser {
             //produceKotlinLibrary()
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
         }
     }
 
@@ -36,7 +38,12 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-js"))
 
-                api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.2-build-1716")
+                api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.1")
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
             }
         }
     }

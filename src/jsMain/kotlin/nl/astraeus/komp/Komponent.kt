@@ -1,6 +1,5 @@
 package nl.astraeus.komp
 
-import kotlinx.html.Tag
 import kotlinx.html.div
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -8,20 +7,21 @@ import org.w3c.dom.Node
 import org.w3c.dom.css.CSSStyleDeclaration
 import kotlin.browser.document
 
-public typealias CssStyle = CSSStyleDeclaration.() -> Unit
+typealias CssStyle = CSSStyleDeclaration.() -> Unit
 
-fun Tag.include(component: Komponent) {
-  if (component.element != null) {
-    component.update()
+fun HtmlConsumer.include(component: Komponent) {
+  if (Komponent.updateStrategy == UpdateStrategy.REPLACE) {
+    if (component.element != null) {
+      component.update()
+    } else {
+      component.refresh()
+    }
+
+    component.element?.also {
+      append(it)
+    }
   } else {
-    component.refresh()
-  }
-
-  val consumer = this.consumer
-  val element = component.element
-
-  if (consumer is HtmlBuilder && element != null) {
-    consumer.append(element)
+    append(component.create())
   }
 }
 
@@ -46,10 +46,6 @@ abstract class Komponent {
     val consumer = HtmlBuilder(this, document)
     consumer.render()
     val result = consumer.finalize()
-
-    if (logReplaceEvent) {
-      console.log("Element hash", result, result.getKompHash())
-    }
 
     element = result
 

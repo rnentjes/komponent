@@ -7,7 +7,7 @@ import org.w3c.dom.events.Event
 import kotlin.browser.document
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun HTMLElement.setEvent(name: String, noinline callback: (Event) -> Unit): Unit {
+inline fun HTMLElement.setEvent(name: String, noinline callback: (Event) -> Unit): Unit {
   val eventName = if (name.startsWith("on")) {
     name.substring(2)
   } else {
@@ -103,19 +103,19 @@ class HtmlBuilder(
       }
     }
 
-    tag.attributesEntries.forEach {
-      if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-        val key_value = "${it.key}-${it.value}"
-        hash = hash * 37 + key_value.hashCode()
-      }
-      if (it.key == "class") {
-        val classes = it.value.split(Regex("\\s+"))
+    for ((key, value) in tag.attributesEntries) {
+      if (key == "class") {
+        val classes = value.split(Regex("\\s+"))
         val classNames = StringBuilder()
 
         for (cls in classes) {
           val cssStyle = komponent.declaredStyles[cls]
 
           if (cssStyle != null) {
+            if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+              hash = hash * 37 + cssStyle.hashCode()
+            }
+
             if (cls.endsWith(":hover")) {
               val oldOnMouseOver = element.onmouseover
               val oldOnMouseOut = element.onmouseout
@@ -138,15 +138,31 @@ class HtmlBuilder(
               element.setStyles(cssStyle)
             }
           } else {
+            if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+              hash = hash * 37 + cls.hashCode()
+            }
+
             classNames.append(cls)
             classNames.append(" ")
           }
         }
 
         element.className = classNames.toString()
+
+        if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+          val key_value = "${key}-${classNames}"
+          hash = hash * 37 + key_value.hashCode()
+        }
       } else {
-        element.setAttribute(it.key, it.value)
+        element.setAttribute(key, value)
+
+        if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+          val key_value = "${key}-${value}"
+          hash = hash * 37 + key_value.hashCode()
+        }
       }
+
+
     }
 
     if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
