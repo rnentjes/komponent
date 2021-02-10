@@ -13,6 +13,48 @@
         <element id="module-output" name="komp_main" />
       </root>
     </artifact>
+    <artifact type="jar" name="komp-js-0.1.21-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-js-0.1.21-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-js-0.2.1-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-js-0.2.1-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-js-0.2.2-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-js-0.2.2-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.2.2-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.2.2-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.2.3-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.2.3-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.2.4-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.2.4-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.2.5-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.2.5-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
   </component>
   <component name="CheckStyle-IDEA">
     <option name="configuration">
@@ -75,8 +117,6 @@
             <option value="$PROJECT_DIR$" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
-        <option name="useAutoImport" value="true" />
       </GradleProjectSettings>
     </option>
   </component>
@@ -216,7 +256,7 @@
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/komp.iml" filepath="$PROJECT_DIR$/komp.iml" group="komp" />
+      <module fileurl="file://$PROJECT_DIR$/komp.iml" filepath="$PROJECT_DIR$/komp.iml" />
       <module fileurl="file://$PROJECT_DIR$/komp_main.iml" filepath="$PROJECT_DIR$/komp_main.iml" group="komp" />
       <module fileurl="file://$PROJECT_DIR$/komp_test.iml" filepath="$PROJECT_DIR$/komp_test.iml" group="komp" />
     </modules>
@@ -253,6 +293,11 @@
       <option name="id" value="maven" />
       <option name="name" value="maven" />
       <option name="url" value="http://nexus.astraeus.nl/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="BintrayJCenter" />
+      <option name="name" value="BintrayJCenter" />
+      <option name="url" value="https://jcenter.bintray.com/" />
     </remote-repository>
   </component>
   <component name="RunManager">

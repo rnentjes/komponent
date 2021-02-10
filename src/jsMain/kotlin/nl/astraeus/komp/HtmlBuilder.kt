@@ -1,13 +1,13 @@
 package nl.astraeus.komp
 
+import kotlinx.browser.document
 import kotlinx.html.*
 import org.w3c.dom.*
 import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.events.Event
-import kotlin.browser.document
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun HTMLElement.setEvent(name: String, noinline callback: (Event) -> Unit): Unit {
+inline fun HTMLElement.setEvent(name: String, noinline callback: (Event) -> Unit) {
   val eventName = if (name.startsWith("on")) {
     name.substring(2)
   } else {
@@ -185,7 +185,7 @@ class HtmlBuilder(
       throw IllegalStateException("No current DOM node")
     }
 
-    // stupid hack as browsers doesn't support createEntityReference
+    // stupid hack as browsers don't support createEntityReference
     val s = document.createElement("span") as HTMLElement
     s.innerHTML = entity.text
     path.last().appendChild(s.childNodes.asList().first { it.nodeType == Node.TEXT_NODE })

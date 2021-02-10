@@ -1,11 +1,7 @@
 package nl.astraeus.komp
 
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
+import org.w3c.dom.*
 import org.w3c.dom.events.Event
-import org.w3c.dom.get
 
 const val HASH_VALUE = "komp-hash-value"
 
@@ -34,10 +30,20 @@ object DiffPatch {
   fun hashesMatch(oldNode: Node, newNode: Node): Boolean {
     return (
         oldNode is HTMLElement &&
-        newNode is HTMLElement &&
-        oldNode.nodeName == newNode.nodeName &&
-        oldNode.getKompHash() == newNode.getKompHash()
-           )
+            newNode is HTMLElement &&
+            oldNode.nodeName == newNode.nodeName &&
+            oldNode.getKompHash() == newNode.getKompHash()
+        )
+  }
+
+  private fun updateKomponentOnNode(oldNode: Node, newNode: Node) {
+    val komponent = newNode.asDynamic()[KOMP_KOMPONENT] as? Komponent
+    if (komponent != null) {
+      if (Komponent.logReplaceEvent) {
+        console.log("Keeping oldNode, set oldNode element on Komponent", oldNode, komponent)
+      }
+      komponent.element = oldNode
+    }
   }
 
   fun updateNode(oldNode: Node, newNode: Node): Node {
@@ -45,6 +51,8 @@ object DiffPatch {
       if (Komponent.logReplaceEvent) {
         console.log("Hashes match", oldNode, newNode, oldNode.getKompHash(), newNode.getKompHash())
       }
+
+      updateKomponentOnNode(oldNode, newNode)
       return oldNode
     }
 
@@ -55,6 +63,8 @@ object DiffPatch {
         }
         oldNode.textContent = newNode.textContent
       }
+
+      updateKomponentOnNode(oldNode, newNode)
       return oldNode
     }
 
@@ -73,6 +83,8 @@ object DiffPatch {
         }
         updateChildren(oldNode, newNode)
         oldNode.setKompHash(newNode.getKompHash())
+
+        updateKomponentOnNode(oldNode, newNode)
         return oldNode
       }
     }

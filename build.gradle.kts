@@ -1,10 +1,11 @@
+
 plugins {
-    kotlin("multiplatform") version "1.3.71"
+    kotlin("multiplatform") version "1.4.30"
     `maven-publish`
 }
 
 group = "nl.astraeus"
-version = "0.1.21-SNAPSHOT"
+version = "0.2.5-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -15,7 +16,7 @@ kotlin {
     /* Targets configuration omitted. 
     *  To find out how to configure the targets, please follow the link:
     *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
-    js {
+    js(BOTH) {
         browser {
             //produceKotlinLibrary()
             testTask {
@@ -31,14 +32,12 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-common"))
 
-                //implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2-build-1711")
+                api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.2")
             }
         }
         val jsMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-js"))
-
-                api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.1")
             }
         }
         val jsTest by getting {
