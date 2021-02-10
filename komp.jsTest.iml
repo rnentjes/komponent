@@ -5,8 +5,8 @@
       <configuration version="3" platform="JavaScript " allPlatforms="JS []" useProjectSettings="false" isTestModule="true" externalProjectId="komp" pureKotlinSourceFolders="$MODULE_DIR$/src/jsMain/kotlin;/home/rnentjes/Development/komp/komp/build/externals/komp-jsLegacy/src;/home/rnentjes/Development/komp/komp/build/externals/komp-jsIr/src;/home/rnentjes/Development/komp/komp/src/jsTest/kotlin;/home/rnentjes/Development/komp/komp/src/commonMain/kotlin">
         <dependsOnModuleNames>komp:commonTest</dependsOnModuleNames>
         <sourceSets>
-          <sourceSet>komp.jsMain</sourceSet>
           <sourceSet>komp.commonTest</sourceSet>
+          <sourceSet>komp.jsMain</sourceSet>
           <sourceSet>komp.commonMain</sourceSet>
         </sourceSets>
         <newMppModelJpsModuleKind>COMPILATION_AND_SOURCE_SET_HOLDER</newMppModelJpsModuleKind>

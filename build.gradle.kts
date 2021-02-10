@@ -50,32 +50,34 @@ kotlin {
 
 publishing {
     repositories {
-        maven {
-            name = "releases"
-            url = uri("http://nexus.astraeus.nl/nexus/content/repositories/releases")
-            credentials {
-                val nexusUsername: String by project
-                val nexusPassword: String by project
+        if (project.properties["nexusUsername"] != null) {
+            maven {
+                name = "releases"
+                url = uri("http://nexus.astraeus.nl/nexus/content/repositories/releases")
+                credentials {
+                    val nexusUsername: String by project
+                    val nexusPassword: String by project
 
-                username = nexusUsername
-                password = nexusPassword
+                    username = nexusUsername
+                    password = nexusPassword
+                }
             }
-        }
-        maven {
-            name = "snapshots"
-            url = uri("http://nexus.astraeus.nl/nexus/content/repositories/snapshots")
-            credentials {
-                val nexusUsername: String by project
-                val nexusPassword: String by project
+            maven {
+                name = "snapshots"
+                url = uri("http://nexus.astraeus.nl/nexus/content/repositories/snapshots")
+                credentials {
+                    val nexusUsername: String by project
+                    val nexusPassword: String by project
 
-                username = nexusUsername
-                password = nexusPassword
+                    username = nexusUsername
+                    password = nexusPassword
+                }
             }
+        } else {
+            println("Publishing disabled properties not found.")
         }
     }
     publications {
         val kotlinMultiplatform by getting {}
     }
 }
-
-tasks.getByName<Task>("publish").enabled = project.properties["nexusUsername"] != null
