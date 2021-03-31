@@ -6,7 +6,7 @@ import org.w3c.dom.events.Event
 const val HASH_VALUE = "komp-hash-value"
 
 //const val HASH_ATTRIBUTE = "data-komp-hash"
-const val EVENT_ATTRIBUTE = "data-komp-events"
+const val EVENT_PROPERTY = "komp-events"
 
 fun Node.getKompHash(): Int = this.asDynamic()[HASH_VALUE] as? Int? ?: -1
 
@@ -32,6 +32,8 @@ object DiffPatch {
         oldNode is HTMLElement &&
             newNode is HTMLElement &&
             oldNode.nodeName == newNode.nodeName &&
+            oldNode.getKompHash() != -1 &&
+            newNode.getKompHash() != -1 &&
             oldNode.getKompHash() == newNode.getKompHash()
         )
   }
@@ -81,10 +83,10 @@ object DiffPatch {
         if (Komponent.logReplaceEvent) {
           console.log("Update children", oldNode.nodeName, newNode.nodeName)
         }
+        updateKomponentOnNode(oldNode, newNode)
         updateChildren(oldNode, newNode)
         oldNode.setKompHash(newNode.getKompHash())
 
-        updateKomponentOnNode(oldNode, newNode)
         return oldNode
       }
     }
@@ -94,7 +96,6 @@ object DiffPatch {
     }
 
     oldNode.parentNode?.replaceChild(newNode, oldNode)
-    //replaceNode(oldNode, newNode)
     return newNode
   }
 
@@ -123,21 +124,8 @@ object DiffPatch {
 
     if (newNode is HTMLInputElement && oldNode is HTMLInputElement) {
       oldNode.value = newNode.value
+      oldNode.checked = newNode.checked
     }
-
-/*
-    for (index in 0 until newNode.attributes.length) {
-      val attr = newNode.attributes[index]
-
-      if (attr != null) {
-        val oldAttr = oldNode.attributes[attr.name]
-
-        if (oldAttr == null || oldAttr.value != attr.value) {
-          oldNode.setAttribute(attr.name, attr.value)
-        }
-      }
-    }
-*/
   }
 
   private fun updateChildren(oldNode: HTMLElement, newNode: HTMLElement) {
@@ -278,86 +266,32 @@ object DiffPatch {
   }
 
   private fun updateEvents(oldNode: HTMLElement, newNode: HTMLElement) {
-    val oldEvents = mutableListOf<String>()
-    oldEvents.addAll((oldNode.getAttribute(EVENT_ATTRIBUTE) ?: "").split(","))
-
-    val newEvents = (newNode.getAttribute(EVENT_ATTRIBUTE) ?: "").split(",")
+    val oldEvents = (oldNode.asDynamic()[EVENT_PROPERTY] as? MutableList<String>) ?: mutableListOf()
+    val newEvents = (newNode.asDynamic()[EVENT_PROPERTY] as? MutableList<String>) ?: mutableListOf()
 
     if (Komponent.logReplaceEvent) {
-      console.log("Update events", oldNode.getAttribute(EVENT_ATTRIBUTE), newNode.getAttribute(EVENT_ATTRIBUTE))
-    }
-
-    for (event in newEvents) {
-      if (event.isNotBlank()) {
-        val oldNodeEvent = oldNode.asDynamic()["event-$event"]
-        val newNodeEvent = newNode.asDynamic()["event-$event"]
-        if (oldNodeEvent != null) {
-          if (Komponent.logReplaceEvent) {
-            console.log("Remove old event $event")
-          }
-          oldNode.removeEventListener(event, oldNodeEvent as ((Event) -> Unit), null)
-        }
-        if (newNodeEvent != null) {
-          if (Komponent.logReplaceEvent) {
-            console.log("Set event $event on", oldNode)
-          }
-          oldNode.setEvent(event, newNodeEvent as ((Event) -> Unit))
-        }
-        oldEvents.remove(event)
-      }
+      console.log("Update events", oldNode.getAttribute(EVENT_PROPERTY), newNode.getAttribute(EVENT_PROPERTY))
     }
 
     for (event in oldEvents) {
-      if (event.isNotBlank()) {
-        val oldNodeEvent = oldNode.asDynamic()["event-$event"]
-        if (oldNodeEvent != null) {
-          oldNode.removeEventListener(event, oldNodeEvent as ((Event) -> Unit), null)
+      oldNode.removeKompEvent(event)
+    }
+
+    for (event in newEvents) {
+      val newNodeEvent = newNode.asDynamic()["event-$event"]
+
+      if (newNodeEvent != null) {
+        if (Komponent.logReplaceEvent) {
+          console.log("Set event $event on", oldNode)
         }
+        oldNode.setKompEvent(event, newNodeEvent as ((Event) -> Unit))
       }
     }
 
-    newNode.getAttribute(EVENT_ATTRIBUTE)?.also {
-      oldNode.setAttribute(EVENT_ATTRIBUTE, it)
-    }
-  }
-
-  private fun replaceNode(oldNode: Node, newNode: Node) {
-    oldNode.parentNode?.also { parent ->
-      val clone = newNode.cloneNode(true)
-      cloneEvents(clone, newNode)
-      parent.replaceChild(clone, oldNode)
-    }
-  }
-
-  private fun cloneEvents(destination: Node, source: Node) {
-    if (source is HTMLElement && destination is HTMLElement) {
-      val events = (source.getAttribute(EVENT_ATTRIBUTE) ?: "").split(",")
-      for (event in events) {
-        if (event.isNotBlank()) {
-          if (Komponent.logReplaceEvent) {
-            console.log("Clone event $event on", source)
-          }
-
-          val foundEvent = source.asDynamic()["event-$event"]
-          if (foundEvent != null) {
-            if (Komponent.logReplaceEvent) {
-              console.log("Clone add eventlistener", foundEvent)
-            }
-            destination.setEvent(event, foundEvent as ((Event) -> Unit))
-          } else {
-            if (Komponent.logReplaceEvent) {
-              console.log("Event not found $event", source)
-            }
-          }
-        }
-      }
-    }
-    for (index in 0 until source.childNodes.length) {
-      destination.childNodes[index]?.also { destinationChild ->
-        source.childNodes[index]?.also { sourceChild ->
-          cloneEvents(destinationChild, sourceChild)
-        }
-      }
+    if (newEvents.isEmpty()) {
+      oldNode.asDynamic()[EVENT_PROPERTY] = null
+    } else {
+      oldNode.asDynamic()[EVENT_PROPERTY] = newNode.asDynamic()[EVENT_PROPERTY]
     }
   }
 

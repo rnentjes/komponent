@@ -257,6 +257,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/komp.iml" filepath="$PROJECT_DIR$/komp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/komp.commonMain.iml" filepath="$PROJECT_DIR$/komp.commonMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/komp.commonTest.iml" filepath="$PROJECT_DIR$/komp.commonTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/komp.jsMain.iml" filepath="$PROJECT_DIR$/komp.jsMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/komp.jsTest.iml" filepath="$PROJECT_DIR$/komp.jsTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/komp_main.iml" filepath="$PROJECT_DIR$/komp_main.iml" group="komp" />
       <module fileurl="file://$PROJECT_DIR$/komp_test.iml" filepath="$PROJECT_DIR$/komp_test.iml" group="komp" />
     </modules>
@@ -362,41 +366,130 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
   </component>
+  <component name="accountSettings">
+    <option name="activeRegion" value="us-east-1" />
+    <option name="recentlyUsedRegions">
+      <list>
+        <option value="us-east-1" />
+      </list>
+    </option>
+  </component>
+  <component name="libraries-with-intellij-classes">
+    <option name="intellijApiContainingLibraries">
+      <list>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="ideaIU" />
+          <option name="groupId" value="com.jetbrains.intellij.idea" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="ideaIU" />
+          <option name="groupId" value="com.jetbrains" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="ideaIC" />
+          <option name="groupId" value="com.jetbrains.intellij.idea" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="ideaIC" />
+          <option name="groupId" value="com.jetbrains" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="pycharmPY" />
+          <option name="groupId" value="com.jetbrains.intellij.pycharm" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="pycharmPY" />
+          <option name="groupId" value="com.jetbrains" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="pycharmPC" />
+          <option name="groupId" value="com.jetbrains.intellij.pycharm" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="pycharmPC" />
+          <option name="groupId" value="com.jetbrains" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="clion" />
+          <option name="groupId" value="com.jetbrains.intellij.clion" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="clion" />
+          <option name="groupId" value="com.jetbrains" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="riderRD" />
+          <option name="groupId" value="com.jetbrains.intellij.rider" />
+        </LibraryCoordinatesState>
+        <LibraryCoordinatesState>
+          <option name="artifactId" value="riderRD" />
+          <option name="groupId" value="com.jetbrains" />
+        </LibraryCoordinatesState>
+      </list>
+    </option>
+  </component>
   <component name="libraryTable">
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.70" type="kotlin.common">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30" type="kotlin.common">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.3.70/3fa8dd6c896d635e78201e5e811545f3846dec04/kotlin-stdlib-common-1.3.70.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.4.30/bb9a3173350f55732416ee27956ea8f9b81f4dbb/kotlin-stdlib-common-1.4.30.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.3.70/6eefff69d45d17fb1b50591729853e9f6a15d09/kotlin-stdlib-common-1.3.70-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.4.30/9427471650876e86fdb0dd878f147ff15c57eac0/kotlin-stdlib-common-1.4.30-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.3.70" type="kotlin.js">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.4.30" type="kotlin.js">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.3.70/41513becdc85a89799b74028a81c39c364ba3465/kotlin-stdlib-js-1.3.70.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.4.30/6c66d1db9c724b087c3a6f37aecffd24d0b14f26/kotlin-stdlib-js-1.4.30.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.3.70/8b0cd54438c595bb7c2c5e1e4a77a61f0eb39af5/kotlin-stdlib-js-1.3.70-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.4.30/5729944dc91bf28689461fe44b9e401fd41a84a7/kotlin-stdlib-js-1.4.30-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.7.1" type="kotlin.common">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-annotations-common:1.4.30" type="kotlin.common">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.1/26651a49fdc0e6abf8a61182b01d6bb0a6bb427e/kotlinx-html-common-0.7.1.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-annotations-common/1.4.30/e77a76b23fc3007baf57a9d3354fdd318fe1fa88/kotlin-test-annotations-common-1.4.30.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.1/5aba2eaa4e02d75d6e526900ee69d4e20a0d6d94/kotlinx-html-common-0.7.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-annotations-common/1.4.30/57512e29ee20defe37d54ce19507d599b0f2113/kotlin-test-annotations-common-1.4.30-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.7.1" type="kotlin.js">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-common:1.4.30" type="kotlin.common">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.1/f3a744916effcbe728d38e4bfd732f9694d18fa9/kotlinx-html-js-0.7.1.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-common/1.4.30/823ed87441680d1334a1f0d23781c0089e16c0a6/kotlin-test-common-1.4.30.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.1/435518751d3af45577f8af5f64c4850bc5989af2/kotlinx-html-js-0.7.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-common/1.4.30/d1818d1bdc457b51289f006884a260b56a55cb77/kotlin-test-common-1.4.30-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-js:1.4.30" type="kotlin.js">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.4.30/5b1cb1ec31a344f6aa1047d6cae3a268825cb724/kotlin-test-js-1.4.30.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.4.30/8e70170db077d3f421c3fb6d24468b3938990f4a/kotlin-test-js-1.4.30-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.7.2" type="kotlin.common">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.2/7da838083337896b558cab2884c4118709a58769/kotlinx-html-metadata-0.7.2.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.2/866bbbfe0a81d49cdf19fd149adafbb938b35be4/kotlinx-html-common-0.7.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.7.2" type="kotlin.js">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.2/baf7e494e549776d0ae3e0ee225804a513f5dc26/kotlinx-html-jslegacy-0.7.2.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.2/b09bfd3565058174afa3fd0888743f8b8dca5406/kotlinx-html-js-0.7.2-sources.jar!/" />
       </SOURCES>
     </library>
   </component>

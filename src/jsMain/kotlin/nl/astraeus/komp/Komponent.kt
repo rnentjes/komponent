@@ -70,8 +70,14 @@ abstract class Komponent {
   val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
 
   open fun create(): HTMLElement {
-    val consumer = HtmlBuilder(this, document)
-    consumer.render()
+    val consumer = HtmlBuilder(this, document, this.createIndex)
+    try {
+      consumer.render()
+    } catch (e: Throwable) {
+      println("Exception occurred in ${this::class.simpleName}.render() call!")
+
+      throw e
+    }
     val result = consumer.finalize()
 
     if (result.id.isBlank()) {
@@ -188,9 +194,8 @@ abstract class Komponent {
 
       todo.forEach { next ->
         val element = next.element
-        console.log("update element", element)
+
         if (element is HTMLElement) {
-          console.log("by id", document.getElementById(element.id))
           if (document.getElementById(element.id) != null) {
             if (next.dirty) {
               if (logRenderEvent) {

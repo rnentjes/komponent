@@ -7,26 +7,54 @@ import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.events.Event
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun HTMLElement.setEvent(name: String, noinline callback: (Event) -> Unit) {
+inline fun HTMLElement.setKompEvent(name: String, noinline callback: (Event) -> Unit) {
   val eventName = if (name.startsWith("on")) {
     name.substring(2)
   } else {
     name
   }
   addEventListener(eventName, callback, null)
+
   if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
     //asDynamic()[name] = callback
-    val events = getAttribute(EVENT_ATTRIBUTE) ?: ""
+    val events: MutableList<String> = (asDynamic()[EVENT_PROPERTY] as? MutableList<String>) ?: mutableListOf()
 
-    setAttribute(
-      EVENT_ATTRIBUTE,
-        if (events.isBlank()) {
-          eventName
-        } else {
-          "$events,$eventName"
-        }
-    )
+    events.add(eventName)
+    asDynamic()[EVENT_PROPERTY] = events
     asDynamic()["event-$eventName"] = callback
+  }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun HTMLElement.removeKompEvent(name: String) {
+  val eventName = if (name.startsWith("on")) {
+    name.substring(2)
+  } else {
+    name
+  }
+
+  removeEventListener(eventName, asDynamic()["event-$eventName"] as ((Event) -> Unit), null)
+
+  if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+    //asDynamic()[name] = callback
+    val events: MutableList<String> = (asDynamic()[EVENT_PROPERTY] as? MutableList<String>) ?: mutableListOf()
+
+    events.remove(eventName)
+    asDynamic()["event-$eventName"] = null
+  }
+}
+
+fun HTMLElement.clearEvents() {
+  if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
+    //asDynamic()[name] = callback
+    val events = getAttribute(EVENT_PROPERTY) ?: ""
+
+    for (eventName in events.split(",")) {
+      if (eventName.isNotBlank()) {
+        val event: (Event) -> Unit = asDynamic()["event-$eventName"]
+        removeEventListener(eventName, event)
+      }
+    }
   }
 }
 
@@ -43,8 +71,9 @@ fun HTMLElement.setStyles(cssStyle: CSSStyleDeclaration) {
 }
 
 class HtmlBuilder(
-    val komponent: Komponent,
-    val document: Document
+  val komponent: Komponent,
+  val document: Document,
+  val baseHash: Int
 ) : HtmlConsumer {
   private val path = arrayListOf<HTMLElement>()
   private var lastLeaved: HTMLElement? = null
@@ -80,7 +109,7 @@ class HtmlBuilder(
     when {
       path.isEmpty()                                                 -> throw IllegalStateException("No current tag")
       path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-      else                                                           -> path.last().setEvent(event, value)
+      else -> path.last().setKompEvent(event, value)
     }
   }
 
@@ -161,13 +190,10 @@ class HtmlBuilder(
           hash = hash * 37 + key_value.hashCode()
         }
       }
-
-
     }
 
     if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-      element.setKompHash(hash)
-      //element.setAttribute(DiffPatch.HASH_ATTRIBUTE, hash.toString(16))
+      element.setKompHash(baseHash * 53 + hash)
     }
     lastLeaved = path.removeAt(path.lastIndex)
   }
@@ -221,7 +247,8 @@ class HtmlBuilder(
 
   companion object {
     fun create(content: HtmlBuilder.() -> Unit): HTMLElement {
-      val consumer = HtmlBuilder(DummyKomponent(), document)
+      val komponent = DummyKomponent()
+      val consumer = HtmlBuilder(komponent, document, komponent.hashCode())
       content.invoke(consumer)
       return consumer.finalize()
     }

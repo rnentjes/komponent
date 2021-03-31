@@ -1,11 +1,11 @@
 
 plugins {
-    kotlin("multiplatform") version "1.4.30"
+    kotlin("multiplatform") version "1.4.32"
     `maven-publish`
 }
 
 group = "nl.astraeus"
-version = "0.2.5-SNAPSHOT"
+version = "0.2.6-SNAPSHOT"
 
 repositories {
     mavenCentral()
