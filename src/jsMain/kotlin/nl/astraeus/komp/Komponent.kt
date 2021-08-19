@@ -55,7 +55,7 @@ abstract class Komponent {
     onAfterUpdate()
   }
 
-  fun memoizeChanged() = lastMemoizeHash != null && lastMemoizeHash != generateMemoizeHash()
+  fun memoizeChanged() = lastMemoizeHash == null || lastMemoizeHash != generateMemoizeHash()
 
   abstract fun HtmlBuilder.render()
 
