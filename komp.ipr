@@ -55,6 +55,54 @@
         <element id="module-output" name="komp.jsMain" />
       </root>
     </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.3.0-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.3.0-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.4.0-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.4.0-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.4.1">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.4.1.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.1">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.1.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.2">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.2.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.3">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.3.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.4">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.4.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.6-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.6-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
   </component>
   <component name="CheckStyle-IDEA">
     <option name="configuration">
@@ -254,6 +302,80 @@
     </group>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
+  <component name="ProjectCodeStyleConfiguration">
+    <option name="USE_PER_PROJECT_SETTINGS" value="true" />
+    <code_scheme name="Project" version="173">
+      <option name="LINE_SEPARATOR" value="&#10;" />
+      <option name="RIGHT_MARGIN" value="140" />
+      <H2CodeStyleSettings version="6">
+        <option name="USE_GENERAL_STYLE" value="false" />
+      </H2CodeStyleSettings>
+      <H2CodeStyleSettings version="6">
+        <option name="USE_GENERAL_STYLE" value="false" />
+      </H2CodeStyleSettings>
+      <JavaCodeStyleSettings>
+        <option name="ANNOTATION_PARAMETER_WRAP" value="5" />
+        <option name="ALIGN_MULTILINE_ANNOTATION_PARAMETERS" value="true" />
+        <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
+        <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="50" />
+      </JavaCodeStyleSettings>
+      <JetCodeStyleSettings>
+        <option name="NAME_COUNT_TO_USE_STAR_IMPORT" value="99" />
+        <option name="NAME_COUNT_TO_USE_STAR_IMPORT_FOR_MEMBERS" value="99" />
+        <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
+      </JetCodeStyleSettings>
+      <codeStyleSettings language="JAVA">
+        <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
+        <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
+        <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
+        <option name="ALIGN_MULTILINE_BINARY_OPERATION" value="true" />
+        <option name="ALIGN_MULTILINE_TERNARY_OPERATION" value="true" />
+        <option name="ALIGN_MULTILINE_EXTENDS_LIST" value="true" />
+        <option name="ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION" value="true" />
+        <option name="ALIGN_GROUP_FIELD_DECLARATIONS" value="true" />
+        <option name="ALIGN_CONSECUTIVE_VARIABLE_DECLARATIONS" value="true" />
+        <option name="ALIGN_CONSECUTIVE_ASSIGNMENTS" value="true" />
+        <option name="ALIGN_SUBSEQUENT_SIMPLE_METHODS" value="true" />
+        <option name="CALL_PARAMETERS_WRAP" value="5" />
+        <option name="CALL_PARAMETERS_LPAREN_ON_NEXT_LINE" value="true" />
+        <option name="CALL_PARAMETERS_RPAREN_ON_NEXT_LINE" value="true" />
+        <option name="METHOD_PARAMETERS_WRAP" value="5" />
+        <option name="METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE" value="true" />
+        <option name="METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE" value="true" />
+        <option name="RESOURCE_LIST_WRAP" value="5" />
+        <option name="RESOURCE_LIST_LPAREN_ON_NEXT_LINE" value="true" />
+        <option name="RESOURCE_LIST_RPAREN_ON_NEXT_LINE" value="true" />
+        <option name="EXTENDS_LIST_WRAP" value="5" />
+        <option name="THROWS_LIST_WRAP" value="5" />
+        <option name="THROWS_KEYWORD_WRAP" value="1" />
+        <option name="METHOD_CALL_CHAIN_WRAP" value="5" />
+        <option name="PARENTHESES_EXPRESSION_LPAREN_WRAP" value="true" />
+        <option name="PARENTHESES_EXPRESSION_RPAREN_WRAP" value="true" />
+        <option name="BINARY_OPERATION_WRAP" value="5" />
+        <option name="TERNARY_OPERATION_WRAP" value="5" />
+        <option name="FOR_STATEMENT_WRAP" value="5" />
+        <option name="FOR_STATEMENT_LPAREN_ON_NEXT_LINE" value="true" />
+        <option name="FOR_STATEMENT_RPAREN_ON_NEXT_LINE" value="true" />
+        <option name="ARRAY_INITIALIZER_WRAP" value="5" />
+        <option name="ARRAY_INITIALIZER_LBRACE_ON_NEXT_LINE" value="true" />
+        <option name="ARRAY_INITIALIZER_RBRACE_ON_NEXT_LINE" value="true" />
+        <option name="ASSERT_STATEMENT_WRAP" value="5" />
+        <option name="IF_BRACE_FORCE" value="3" />
+        <option name="DOWHILE_BRACE_FORCE" value="3" />
+        <option name="WHILE_BRACE_FORCE" value="3" />
+        <option name="FOR_BRACE_FORCE" value="3" />
+        <option name="ENUM_CONSTANTS_WRAP" value="5" />
+      </codeStyleSettings>
+      <codeStyleSettings language="kotlin">
+        <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
+        <indentOptions>
+          <option name="INDENT_SIZE" value="2" />
+          <option name="CONTINUATION_INDENT_SIZE" value="4" />
+          <option name="TAB_SIZE" value="2" />
+        </indentOptions>
+      </codeStyleSettings>
+    </code_scheme>
+  </component>
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/komp.iml" filepath="$PROJECT_DIR$/komp.iml" />
@@ -303,6 +425,13 @@
       <option name="name" value="BintrayJCenter" />
       <option name="url" value="https://jcenter.bintray.com/" />
     </remote-repository>
+  </component>
+  <component name="RunConfigurationProducerService">
+    <option name="ignoredProducers">
+      <set>
+        <option value="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer" />
+      </set>
+    </option>
   </component>
   <component name="RunManager">
     <configuration default="true" type="Applet" factoryName="Applet">
@@ -374,122 +503,52 @@
       </list>
     </option>
   </component>
-  <component name="libraries-with-intellij-classes">
-    <option name="intellijApiContainingLibraries">
-      <list>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="ideaIU" />
-          <option name="groupId" value="com.jetbrains.intellij.idea" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="ideaIU" />
-          <option name="groupId" value="com.jetbrains" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="ideaIC" />
-          <option name="groupId" value="com.jetbrains.intellij.idea" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="ideaIC" />
-          <option name="groupId" value="com.jetbrains" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="pycharmPY" />
-          <option name="groupId" value="com.jetbrains.intellij.pycharm" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="pycharmPY" />
-          <option name="groupId" value="com.jetbrains" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="pycharmPC" />
-          <option name="groupId" value="com.jetbrains.intellij.pycharm" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="pycharmPC" />
-          <option name="groupId" value="com.jetbrains" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="clion" />
-          <option name="groupId" value="com.jetbrains.intellij.clion" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="clion" />
-          <option name="groupId" value="com.jetbrains" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="riderRD" />
-          <option name="groupId" value="com.jetbrains.intellij.rider" />
-        </LibraryCoordinatesState>
-        <LibraryCoordinatesState>
-          <option name="artifactId" value="riderRD" />
-          <option name="groupId" value="com.jetbrains" />
-        </LibraryCoordinatesState>
-      </list>
-    </option>
-  </component>
   <component name="libraryTable">
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30" type="kotlin.common">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.5.21" type="kotlin.common">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.4.30/bb9a3173350f55732416ee27956ea8f9b81f4dbb/kotlin-stdlib-common-1.4.30.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.5.21/cc8bf3586fd2ebcf234058b9440bb406e62dfacb/kotlin-stdlib-common-1.5.21.jar!/" />
       </CLASSES>
-      <JAVADOC />
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.5.21/5b8f86fea035328fc9e8c660773037a3401ce25f/kotlin-stdlib-common-1.5.21-javadoc.jar!/" />
+      </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.4.30/9427471650876e86fdb0dd878f147ff15c57eac0/kotlin-stdlib-common-1.4.30-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.5.21/64f0dd5eac2d479a65bc077185d9a8f661c948fe/kotlin-stdlib-common-1.5.21-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.4.30" type="kotlin.js">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:1.5.21" type="kotlin.js">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.4.30/6c66d1db9c724b087c3a6f37aecffd24d0b14f26/kotlin-stdlib-js-1.4.30.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.5.21/9b22e0c2e0dcf2ba9f27e45a48944d05b0384bc3/kotlin-stdlib-js-1.5.21.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.4.30/5729944dc91bf28689461fe44b9e401fd41a84a7/kotlin-stdlib-js-1.4.30-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-js/1.5.21/dcd3e87dab1d7ecc7f2952d5d213e20f977bbddc/kotlin-stdlib-js-1.5.21-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-annotations-common:1.4.30" type="kotlin.common">
+    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-js:1.5.21" type="kotlin.js">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-annotations-common/1.4.30/e77a76b23fc3007baf57a9d3354fdd318fe1fa88/kotlin-test-annotations-common-1.4.30.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.5.21/db9c8e994715fb1edd5bef91db179b60347cbfc9/kotlin-test-js-1.5.21.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-annotations-common/1.4.30/57512e29ee20defe37d54ce19507d599b0f2113/kotlin-test-annotations-common-1.4.30-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.5.21/8e70170db077d3f421c3fb6d24468b3938990f4a/kotlin-test-js-1.5.21-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-common:1.4.30" type="kotlin.common">
+    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.7.3" type="kotlin.common">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-common/1.4.30/823ed87441680d1334a1f0d23781c0089e16c0a6/kotlin-test-common-1.4.30.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.3/4f3df7b2096bce6fef3e532ca1ccff13bd15a6bc/kotlinx-html-metadata-0.7.3.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-common/1.4.30/d1818d1bdc457b51289f006884a260b56a55cb77/kotlin-test-common-1.4.30-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.3/f4eb48699d893b863f142a3c30e1ddddd13b876/kotlinx-html-common-0.7.3-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Gradle: org.jetbrains.kotlin:kotlin-test-js:1.4.30" type="kotlin.js">
+    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.7.3" type="kotlin.js">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.4.30/5b1cb1ec31a344f6aa1047d6cae3a268825cb724/kotlin-test-js-1.4.30.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.3/93a1ab4269d3a567e05088d1237eedbc2efd03c9/kotlinx-html-jslegacy-0.7.3.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-js/1.4.30/8e70170db077d3f421c3fb6d24468b3938990f4a/kotlin-test-js-1.4.30-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-common:0.7.2" type="kotlin.common">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.2/7da838083337896b558cab2884c4118709a58769/kotlinx-html-metadata-0.7.2.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-common/0.7.2/866bbbfe0a81d49cdf19fd149adafbb938b35be4/kotlinx-html-common-0.7.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Gradle: org.jetbrains.kotlinx:kotlinx-html-js:0.7.2" type="kotlin.js">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.2/baf7e494e549776d0ae3e0ee225804a513f5dc26/kotlinx-html-jslegacy-0.7.2.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.2/b09bfd3565058174afa3fd0888743f8b8dca5406/kotlinx-html-js-0.7.2-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-html-js/0.7.3/fc3bc71d1c037b715689112c95c44b96bb2409ea/kotlinx-html-js-0.7.3-sources.jar!/" />
       </SOURCES>
     </library>
   </component>

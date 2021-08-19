@@ -1,256 +1,521 @@
 package nl.astraeus.komp
 
 import kotlinx.browser.document
-import kotlinx.html.*
-import org.w3c.dom.*
-import org.w3c.dom.css.CSSStyleDeclaration
+import kotlinx.html.DefaultUnsafe
+import kotlinx.html.Entities
+import kotlinx.html.FlowOrMetaDataOrPhrasingContent
+import kotlinx.html.Tag
+import kotlinx.html.TagConsumer
+import kotlinx.html.Unsafe
+import org.w3c.dom.Element
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSpanElement
+import org.w3c.dom.Node
+import org.w3c.dom.asList
 import org.w3c.dom.events.Event
+import org.w3c.dom.get
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun HTMLElement.setKompEvent(name: String, noinline callback: (Event) -> Unit) {
-  val eventName = if (name.startsWith("on")) {
-    name.substring(2)
-  } else {
-    name
-  }
-  addEventListener(eventName, callback, null)
+private var currentElement: Element? = null
 
-  if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-    //asDynamic()[name] = callback
-    val events: MutableList<String> = (asDynamic()[EVENT_PROPERTY] as? MutableList<String>) ?: mutableListOf()
-
-    events.add(eventName)
-    asDynamic()[EVENT_PROPERTY] = events
-    asDynamic()["event-$eventName"] = callback
-  }
+interface HtmlConsumer : TagConsumer<Element> {
+  fun append(node: Element)
+  fun include(komponent: Komponent)
+  fun debug(block: HtmlConsumer.() -> Unit)
 }
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun HTMLElement.removeKompEvent(name: String) {
-  val eventName = if (name.startsWith("on")) {
-    name.substring(2)
-  } else {
-    name
+fun Int.asSpaces(): String {
+  val result = StringBuilder()
+  repeat(this) {
+    result.append(" ")
   }
-
-  removeEventListener(eventName, asDynamic()["event-$eventName"] as ((Event) -> Unit), null)
-
-  if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-    //asDynamic()[name] = callback
-    val events: MutableList<String> = (asDynamic()[EVENT_PROPERTY] as? MutableList<String>) ?: mutableListOf()
-
-    events.remove(eventName)
-    asDynamic()["event-$eventName"] = null
-  }
+  return result.toString()
 }
 
-fun HTMLElement.clearEvents() {
-  if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-    //asDynamic()[name] = callback
-    val events = getAttribute(EVENT_PROPERTY) ?: ""
+fun FlowOrMetaDataOrPhrasingContent.currentElement(): Element =
+  currentElement ?: error("No current element defined!")
 
-    for (eventName in events.split(",")) {
-      if (eventName.isNotBlank()) {
-        val event: (Event) -> Unit = asDynamic()["event-$eventName"]
-        removeEventListener(eventName, event)
+fun Element.printTree(indent: Int = 0): String {
+  val result = StringBuilder()
+
+  result.append(indent.asSpaces())
+  result.append(tagName)
+  if (this.namespaceURI != "http://www.w3.org/1999/xhtml") {
+    result.append(" [")
+    result.append(namespaceURI)
+    result.append("]")
+  }
+  result.append(" (")
+  var first = true
+  if (hasAttributes()) {
+    for (index in 0 until attributes.length) {
+      if (!first) {
+        result.append(", ")
+      } else {
+        first = false
+      }
+      result.append(attributes[index]?.localName)
+      result.append("=")
+      result.append(attributes[index]?.value)
+    }
+  }
+  result.append(") {")
+  result.append("\n")
+  for ((name, event) in getKompEvents()) {
+    result.append(indent.asSpaces())
+    result.append("on")
+    result.append(name)
+    result.append(" -> ")
+    result.append(event)
+    result.append("\n")
+  }
+  for (index in 0 until childNodes.length) {
+    childNodes[index]?.let {
+      if (it is Element) {
+        result.append(it.printTree(indent + 2))
+      } else {
+        result.append((indent + 2).asSpaces())
+        result.append(it.textContent)
+        result.append("\n")
       }
     }
   }
+  result.append(indent.asSpaces())
+  result.append("}\n")
+
+  return result.toString()
 }
 
-interface HtmlConsumer : TagConsumer<HTMLElement> {
-  fun append(node: Node)
-}
+private fun Element.clearKompAttributes() {
+  val attributes = this.asDynamic()["komp-attributes"] as MutableSet<String>?
 
-fun HTMLElement.setStyles(cssStyle: CSSStyleDeclaration) {
-  for (index in 0 until cssStyle.length) {
-    val propertyName = cssStyle.item(index)
+  if (attributes == null) {
+    this.asDynamic()["komp-attributes"] = mutableSetOf<String>()
+  } else {
+    attributes.clear()
+  }
 
-    style.setProperty(propertyName, cssStyle.getPropertyValue(propertyName))
+  if (this is HTMLInputElement) {
+    this.checked = false
   }
 }
 
+private fun Element.getKompAttributes(): MutableSet<String> {
+  var result: MutableSet<String>? = this.asDynamic()["komp-attributes"] as MutableSet<String>?
+
+  if (result == null) {
+    result = mutableSetOf()
+
+    this.asDynamic()["komp-attributes"] = result
+  }
+
+  return result
+}
+
+private fun Element.setKompAttribute(name: String, value: String) {
+  val setAttrs: MutableSet<String> = getKompAttributes()
+  setAttrs.add(name)
+
+  if (this is HTMLInputElement) {
+    when (name) {
+      "checked" -> {
+        this.checked = value == "checked"
+      }
+      "value" -> {
+        this.value = value
+
+      }
+      else -> {
+        setAttribute(name, value)
+      }
+    }
+  } else if (this.getAttribute(name) != value) {
+    setAttribute(name, value)
+  }
+}
+
+private fun Element.clearKompEvents() {
+  for ((name, event) in getKompEvents()) {
+    currentElement?.removeEventListener(name, event)
+  }
+
+  val events = this.asDynamic()["komp-events"] as MutableMap<String, (Event) -> Unit>?
+
+  if (events == null) {
+    this.asDynamic()["komp-events"] = mutableMapOf<String, (Event) -> Unit>()
+  } else {
+    events.clear()
+  }
+}
+
+private fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
+  val eventName: String = if (name.startsWith("on")) {
+    name.substring(2)
+  } else {
+    name
+  }
+
+  val events: MutableMap<String, (Event) -> Unit> = getKompEvents()
+
+  events[eventName]?.let {
+    println("Warn event already defined!")
+    currentElement?.removeEventListener(eventName, it)
+  }
+
+  events[eventName] = event
+
+  this.asDynamic()["komp-events"] = events
+
+  this.addEventListener(eventName, event)
+}
+
+private fun Element.getKompEvents(): MutableMap<String, (Event) -> Unit> {
+  return this.asDynamic()["komp-events"] ?: mutableMapOf()
+}
+
+private data class ElementIndex(
+  val parent: Node,
+  var childIndex: Int
+)
+
+private fun ArrayList<ElementIndex>.currentParent(): Node {
+  this.lastOrNull()?.let {
+    return it.parent
+  }
+
+  throw IllegalStateException("currentParent should never be null!")
+}
+
+private fun ArrayList<ElementIndex>.currentElement(): Node? {
+  this.lastOrNull()?.let {
+    return it.parent.childNodes[it.childIndex]
+  }
+
+  return null
+}
+
+private fun ArrayList<ElementIndex>.nextElement() {
+  this.lastOrNull()?.let {
+    it.childIndex++
+  }
+}
+
+private fun ArrayList<ElementIndex>.pop() {
+  this.removeLast()
+}
+
+private fun ArrayList<ElementIndex>.push(element: Node) {
+  this.add(ElementIndex(element, 0))
+}
+
+private fun ArrayList<ElementIndex>.replace(new: Node) {
+  if (this.currentElement() != null) {
+    this.currentElement()?.parentElement?.replaceChild(new, this.currentElement()!!)
+  } else {
+    this.last().parent.appendChild(new)
+  }
+}
+
+private fun Node.asElement() = this as? HTMLElement
+
 class HtmlBuilder(
-  val komponent: Komponent,
-  val document: Document,
-  val baseHash: Int
+  val parent: Element,
+  var childIndex: Int = 0
 ) : HtmlConsumer {
-  private val path = arrayListOf<HTMLElement>()
-  private var lastLeaved: HTMLElement? = null
+  private var currentPosition = arrayListOf<ElementIndex>()
+  private var inDebug = false
+  var currentNode: Node? = null
+  var root: Element? = null
+  val currentAttributes: MutableMap<String, String> = mutableMapOf()
+
+  init {
+    currentPosition.add(ElementIndex(parent, childIndex))
+  }
+
+  override fun include(komponent: Komponent) {
+    if (
+      komponent.element != null &&
+      !komponent.memoizeChanged()
+    ) {
+      currentPosition.replace(komponent.element!!)
+      if (Komponent.logRenderEvent) {
+        console.log("Skipped include $komponent, memoize hasn't changed")
+      }
+    } else {
+      komponent.create(
+        currentPosition.last().parent as Element,
+        currentPosition.last().childIndex
+      )
+    }
+    currentPosition.nextElement()
+  }
+
+  override fun append(node: Element) {
+    currentPosition.replace(node)
+    currentPosition.nextElement()
+  }
+
+  override fun debug(block: HtmlConsumer.() -> Unit) {
+    inDebug = true
+
+    try {
+      block.invoke(this)
+    } finally {
+      inDebug = false
+    }
+  }
+
+  fun logReplace(msg: String) {
+    if (Komponent.logReplaceEvent && inDebug) {
+      console.log(msg)
+    }
+  }
 
   override fun onTagStart(tag: Tag) {
-    val element: HTMLElement = when {
-      tag.namespace != null -> document.createElementNS(tag.namespace!!, tag.tagName).asDynamic()
-      else                  -> document.createElement(tag.tagName) as HTMLElement
+    //logReplace"onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition")
+    currentNode = currentPosition.currentElement()
+
+    if (currentNode == null) {
+      //logReplace"onTagStart, currentNode1: $currentNode")
+      currentNode = if (tag.namespace != null) {
+        document.createElementNS(tag.namespace, tag.tagName)
+      } else {
+        document.createElement(tag.tagName)
+      }
+
+      //logReplace"onTagStart, currentElement1.1: $currentNode")
+      currentPosition.currentParent().appendChild(currentNode!!)
+    } else if (
+      !currentNode?.asElement()?.tagName.equals(tag.tagName, true) ||
+      (
+          tag.namespace != null &&
+              !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
+          )
+    ) {
+      //logReplace"onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}")
+      //logReplace"onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}")
+      currentNode = if (tag.namespace != null) {
+        document.createElementNS(tag.namespace, tag.tagName)
+      } else {
+        document.createElement(tag.tagName)
+      }
+
+      currentPosition.replace(currentNode!!)
+    } else {
+      //logReplace"onTagStart, same node type")
+
     }
 
-    if (path.isNotEmpty()) {
-      path.last().appendChild(element)
+    currentElement = currentNode as? Element ?: currentElement
+
+    if (currentNode is Element) {
+      if (root == null) {
+        //logReplace"Setting root: $currentNode")
+        root = currentNode as Element
+      }
+
+      currentElement?.clearKompAttributes()
+      currentElement?.clearKompEvents()
+
+      for (entry in tag.attributesEntries) {
+        currentElement!!.setKompAttribute(entry.key.lowercase(), entry.value)
+      }
+
+      if (tag.namespace != null) {
+        //logReplace"onTagStart, same node type")
+
+        (currentNode as? Element)?.innerHTML = ""
+      }
     }
 
-    path.add(element)
+    //logReplace"onTagStart, currentElement2: $currentNode")
+
+    currentPosition.push(currentNode!!)
+  }
+
+  private fun checkTag(tag: Tag) {
+    check(currentElement != null) {
+      js("debugger")
+      "No current tag"
+    }
+    check(currentElement?.tagName.equals(tag.tagName, ignoreCase = true)) {
+      js("debugger")
+      "Wrong current tag"
+    }
   }
 
   override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) {
-    when {
-      path.isEmpty()                                                 -> throw IllegalStateException("No current tag")
-      path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-      else                                                           -> path.last().let { node ->
-        if (value == null) {
-          node.removeAttribute(attribute)
-        } else {
-          node.setAttribute(attribute, value)
-        }
-      }
+    logReplace("onTagAttributeChange, ${tag.tagName} [$attribute, $value]")
+
+    checkTag(tag)
+
+    if (value == null) {
+      currentElement?.removeAttribute(attribute.lowercase())
+    } else {
+      currentElement?.setKompAttribute(attribute.lowercase(), value)
     }
   }
 
   override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
-    when {
-      path.isEmpty()                                                 -> throw IllegalStateException("No current tag")
-      path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-      else -> path.last().setKompEvent(event, value)
-    }
+    //logReplace"onTagEvent, ${tag.tagName} [$event, $value]")
+
+    checkTag(tag)
+
+    currentElement?.setKompEvent(event.lowercase(), value)
   }
 
   override fun onTagEnd(tag: Tag) {
-    var hash = 0
-    if (path.isEmpty() || path.last().tagName.toLowerCase() != tag.tagName.toLowerCase()) {
-      throw IllegalStateException("We haven't entered tag ${tag.tagName} but trying to leave")
-    }
-
-    val element = path.last()
-
-    if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-      for (index in 0 until element.childNodes.length) {
-        val child = element.childNodes[index]
-        if (child is HTMLElement) {
-          hash = hash * 37 + child.getKompHash()
-        } else {
-          hash = hash * 37 + (child?.textContent?.hashCode() ?: 0)
-        }
+    while (currentPosition.currentElement() != null) {
+      currentPosition.currentElement()?.let {
+        it.parentElement?.removeChild(it)
       }
     }
 
-    for ((key, value) in tag.attributesEntries) {
-      if (key == "class") {
-        val classes = value.split(Regex("\\s+"))
-        val classNames = StringBuilder()
+    checkTag(tag)
 
-        for (cls in classes) {
-          val cssStyle = komponent.declaredStyles[cls]
+    currentPosition.pop()
 
-          if (cssStyle != null) {
-            if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-              hash = hash * 37 + cssStyle.hashCode()
-            }
+    val setAttrs: List<String> = currentElement.asDynamic()["komp-attributes"] ?: listOf()
 
-            if (cls.endsWith(":hover")) {
-              val oldOnMouseOver = element.onmouseover
-              val oldOnMouseOut = element.onmouseout
+    // remove attributes that where not set
+    val element = currentElement
+    if (element?.hasAttributes() == true) {
+      for (index in 0 until element.attributes.length) {
+        val attr = element.attributes[index]
+        if (attr != null) {
 
-              element.onmouseover = {
-                element.setStyles(cssStyle)
+          if (element is HTMLElement && attr.name == "data-has-focus" && "true" == attr.value) {
+            element.focus()
+          }
 
-                oldOnMouseOver?.invoke(it)
-              }
-              element.onmouseout = {
-                cls.split(':').firstOrNull()?.let {
-                  komponent.declaredStyles[it]?.let { cssStyle ->
-                    element.setStyles(cssStyle)
-                  }
-                }
-
-                oldOnMouseOut?.invoke(it)
+          if (!setAttrs.contains(attr.name)) {
+            if (element is HTMLInputElement) {
+              if (attr.name == "checkbox") {
+                element.checked = false
+              } else if (attr.name == "value") {
+                element.value = ""
               }
             } else {
-              element.setStyles(cssStyle)
+              if (Komponent.logReplaceEvent) {
+                console.log("Clear attribute [${attr.name}]  on $element)")
+              }
+              element.removeAttribute(attr.name)
             }
-          } else {
-            if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-              hash = hash * 37 + cls.hashCode()
-            }
-
-            classNames.append(cls)
-            classNames.append(" ")
           }
-        }
-
-        element.className = classNames.toString()
-
-        if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-          val key_value = "${key}-${classNames}"
-          hash = hash * 37 + key_value.hashCode()
-        }
-      } else {
-        element.setAttribute(key, value)
-
-        if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-          val key_value = "${key}-${value}"
-          hash = hash * 37 + key_value.hashCode()
         }
       }
     }
 
-    if (Komponent.updateStrategy == UpdateStrategy.DOM_DIFF) {
-      element.setKompHash(baseHash * 53 + hash)
-    }
-    lastLeaved = path.removeAt(path.lastIndex)
+    currentPosition.nextElement()
+
+    currentElement = currentElement?.parentElement as? HTMLElement
+
+    //logReplace"onTagEnd, popped: $currentElement")
   }
 
   override fun onTagContent(content: CharSequence) {
-    if (path.isEmpty()) {
-      throw IllegalStateException("No current DOM node")
+    //logReplace"onTagContent, [$content]")
+
+    check(currentElement != null) {
+      "No current DOM node"
     }
 
-    path.last().appendChild(document.createTextNode(content.toString()))
+    //logReplace"Tag content: $content")
+    if (
+      currentElement?.nodeType != Node.TEXT_NODE ||
+      currentElement?.textContent != content.toString()
+    ) {
+      currentElement?.textContent = content.toString()
+    }
+
+    currentPosition.nextElement()
   }
 
   override fun onTagContentEntity(entity: Entities) {
-    if (path.isEmpty()) {
-      throw IllegalStateException("No current DOM node")
+    //logReplace"onTagContentEntity, [${entity.text}]")
+
+    check(currentElement != null) {
+      "No current DOM node"
     }
 
-    // stupid hack as browsers don't support createEntityReference
-    val s = document.createElement("span") as HTMLElement
+    val s = document.createElement("span") as HTMLSpanElement
     s.innerHTML = entity.text
-    path.last().appendChild(s.childNodes.asList().first { it.nodeType == Node.TEXT_NODE })
-
-    // other solution would be
-    //        pathLast().innerHTML += entity.text
-  }
-
-  override fun append(node: Node) {
-    path.last().appendChild(node)
+    currentPosition.replace(
+      s.childNodes.asList().firstOrNull() ?: document.createTextNode(entity.text)
+    )
+    currentPosition.nextElement()
   }
 
   override fun onTagContentUnsafe(block: Unsafe.() -> Unit) {
     with(DefaultUnsafe()) {
       block()
 
-      path.last().innerHTML += toString()
+      val textContent = toString()
+
+      //logReplace"onTagContentUnsafe, [$textContent]")
+
+      var namespace: String? = null
+
+      if (currentPosition.currentParent().nodeType == 1.toShort()) {
+        val element = currentPosition.currentParent() as Element
+
+        namespace = when (Komponent.unsafeMode) {
+          UnsafeMode.UNSAFE_ALLOWED -> {
+            element.namespaceURI
+          }
+          UnsafeMode.UNSAFE_SVG_ONLY -> {
+            if (element.namespaceURI == "http://www.w3.org/2000/svg") {
+              element.namespaceURI
+            } else {
+              null
+            }
+          }
+          else -> {
+            null
+          }
+        }
+      }
+
+      //logReplace"onTagContentUnsafe, namespace: [$namespace]")
+
+      if (Komponent.unsafeMode == UnsafeMode.UNSAFE_ALLOWED ||
+        (Komponent.unsafeMode == UnsafeMode.UNSAFE_SVG_ONLY && namespace == "http://www.w3.org/2000/svg")
+      ) {
+        if (currentElement?.innerHTML != textContent) {
+          currentElement?.innerHTML += textContent
+        }
+      } else if (currentElement?.textContent != textContent) {
+        currentElement?.textContent = textContent
+      }
+
+      currentPosition.nextElement()
     }
   }
 
   override fun onTagComment(content: CharSequence) {
-    if (path.isEmpty()) {
-      throw IllegalStateException("No current DOM node")
-    }
+    //logReplace"onTagComment, [$content]")
 
-    path.last().appendChild(document.createComment(content.toString()))
+    check(currentElement != null) {
+      "No current DOM node"
+    }
+    currentElement?.appendChild(
+      document.createComment(content.toString())
+    )
+
+    currentPosition.nextElement()
   }
 
-  override fun finalize(): HTMLElement = lastLeaved?.asR() ?: throw IllegalStateException("We can't finalize as there was no tags")
-
-  @Suppress("UNCHECKED_CAST")
-  private fun HTMLElement.asR(): HTMLElement = this.asDynamic()
+  override fun finalize(): Element {
+    //logReplace"finalize, currentPosition: $currentPosition")
+    return root ?: throw IllegalStateException("We can't finalize as there was no tags")
+  }
 
   companion object {
-    fun create(content: HtmlBuilder.() -> Unit): HTMLElement {
-      val komponent = DummyKomponent()
-      val consumer = HtmlBuilder(komponent, document, komponent.hashCode())
+    fun create(content: HtmlBuilder.() -> Unit): Element {
+      val container = document.createElement("div") as HTMLElement
+      val consumer = HtmlBuilder(container, 0)
       content.invoke(consumer)
-      return consumer.finalize()
+      return consumer.root ?: error("error")
     }
   }
 }

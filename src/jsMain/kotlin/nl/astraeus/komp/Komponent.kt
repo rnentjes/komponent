@@ -1,17 +1,12 @@
 package nl.astraeus.komp
 
-import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.html.div
-import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.css.CSSStyleDeclaration
+import org.w3c.dom.get
 import kotlin.reflect.KProperty
-
-const val KOMP_KOMPONENT = "komp-komponent"
-
-typealias CssStyle = CSSStyleDeclaration.() -> Unit
 
 class StateDelegate<T>(
   val komponent: Komponent,
@@ -33,144 +28,126 @@ class StateDelegate<T>(
 
 inline fun <reified T> Komponent.state(initialValue: T): StateDelegate<T> = StateDelegate(this, initialValue)
 
-fun HtmlConsumer.include(component: Komponent) {
-  if (Komponent.updateStrategy == UpdateStrategy.REPLACE) {
-    if (component.element != null) {
-      component.update()
-    } else {
-      component.refresh()
-    }
-
-    component.element?.also {
-      append(it)
-    }
-  } else {
-    append(component.create())
-  }
-}
-
-class DummyKomponent: Komponent() {
-  override fun HtmlBuilder.render() {
-    div {
-      + "dummy"
-    }
-  }
-}
-
-enum class UpdateStrategy {
-  REPLACE,
-  DOM_DIFF
+enum class UnsafeMode {
+  UNSAFE_ALLOWED,
+  UNSAFE_DISABLED,
+  UNSAFE_SVG_ONLY
 }
 
 abstract class Komponent {
-  private var createIndex = getNextCreateIndex()
+  val createIndex = getNextCreateIndex()
   private var dirty: Boolean = true
+  private var lastMemoizeHash: Int? = null
 
   var element: Node? = null
   val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
 
-  open fun create(): HTMLElement {
-    val consumer = HtmlBuilder(this, document, this.createIndex)
-    try {
-      consumer.render()
-    } catch (e: Throwable) {
-      println("Exception occurred in ${this::class.simpleName}.render() call!")
+  open fun create(parent: Element, childIndex: Int? = null) {
+    onBeforeUpdate()
+    val builder = HtmlBuilder(
+      parent,
+      childIndex ?: parent.childElementCount
+    )
 
-      throw e
-    }
-    val result = consumer.finalize()
-
-    if (result.id.isBlank()) {
-      result.id = "komp_${createIndex}"
-    }
-
-    element = result
-    element.asDynamic()[KOMP_KOMPONENT] = this
-
-    dirty = false
-
-    return result
+    builder.render()
+    element = builder.root
+    lastMemoizeHash = generateMemoizeHash()
+    onAfterUpdate()
   }
 
+  fun memoizeChanged() = lastMemoizeHash != null && lastMemoizeHash != generateMemoizeHash()
+
   abstract fun HtmlBuilder.render()
+
+  /**
+   * This method is called after the Komponent is updated
+   *
+   * note: it's also called at first render
+   */
+  open fun onAfterUpdate() {}
+
+  /**
+   * This method is called before the Komponent is updated
+   * and before memoizeHash is checked
+   *
+   * note: it's also called at first render
+   */
+  open fun onBeforeUpdate() {}
 
   fun requestUpdate() {
     dirty = true
     scheduleForUpdate(this)
   }
 
-  open fun style(className: String, vararg imports: CssStyle, block: CssStyle = {}) {
-    val style = (document.createElement("div") as HTMLDivElement).style
-    for (imp in imports) {
-      imp(style)
-    }
-    block(style)
-    declaredStyles[className] = style
+  /**
+   * Request an immediate update of this Komponent
+   *
+   * This will run immediately, make sure Komponents are not rendered multiple times
+   * Any scheduled updates will be run as well
+   */
+  fun requestImmediateUpdate() {
+    dirty = true
+    runUpdateImmediately(this)
   }
 
+  /**
+   * This function can be overwritten if you know how to update the Komponent yourself
+   *
+   * HTMLBuilder.render() is called 1st time the component is rendered, after that this
+   * method will be called
+   */
   open fun update() {
     refresh()
   }
 
+  /**
+   * If this function returns a value it will be stored and on the next render it will be compared.
+   *
+   * The render will only happen if the hash is not null and has changed
+   */
+  open fun generateMemoizeHash(): Int? = null
+
   internal fun refresh() {
-    val oldElement = element
+    val currentElement = element
 
-    if (logRenderEvent) {
-      console.log("Rendering", this)
+    check(currentElement != null) {
+      error("element is null")
     }
-    val newElement = create()
 
-    if (oldElement != null) {
-      element = if (updateStrategy == UpdateStrategy.REPLACE) {
-        if (logReplaceEvent) {
-          console.log("Replacing", oldElement, newElement)
-        }
-        oldElement.parentNode?.replaceChild(newElement, oldElement)
-        newElement
-      } else {
-        if (logReplaceEvent) {
-          console.log("DomDiffing", oldElement, newElement)
-        }
-        DiffPatch.updateNode(oldElement, newElement)
+    val parent = currentElement.parentElement as? HTMLElement ?: error("parent is null!?")
+    var childIndex = 0
+    for (index in 0 until parent.children.length) {
+      if (parent.children[index] == currentElement) {
+        childIndex = index
       }
     }
-
+    val consumer = HtmlBuilder(parent, childIndex)
+    consumer.root = null
+    consumer.render()
+    element = consumer.root
     dirty = false
   }
 
-  @JsName("remove")
-  fun remove() {
-    check(updateStrategy == UpdateStrategy.REPLACE) {
-      "remote only works with UpdateStrategy.REPLACE"
-    }
-    element?.let {
-      val parent = it.parentElement ?: throw IllegalArgumentException("Element has no parent!?")
-
-      if (logReplaceEvent) {
-        console.log("Remove", it)
-      }
-
-      parent.removeChild(it)
-    }
+  override fun toString(): String {
+    return "${this::class.simpleName}"
   }
 
   companion object {
     private var nextCreateIndex: Int = 1
     private var updateCallback: Int? = null
     private var scheduledForUpdate = mutableSetOf<Komponent>()
+    private var interceptor: (Komponent, () -> Unit) -> Unit = { _, block -> block() }
 
     var logRenderEvent = false
     var logReplaceEvent = false
-    var updateStrategy = UpdateStrategy.DOM_DIFF
+    var unsafeMode = UnsafeMode.UNSAFE_DISABLED
 
     fun create(parent: HTMLElement, component: Komponent, insertAsFirst: Boolean = false) {
-      val element = component.create()
+      component.create(parent)
+    }
 
-      if (insertAsFirst && parent.childElementCount > 0) {
-        parent.insertBefore(element, parent.firstChild)
-      } else {
-        parent.appendChild(element)
-      }
+    fun setUpdateInterceptor(block: (Komponent, () -> Unit) -> Unit) {
+      interceptor = block
     }
 
     private fun getNextCreateIndex() = nextCreateIndex++
@@ -185,6 +162,11 @@ abstract class Komponent {
       }
     }
 
+    private fun runUpdateImmediately(komponent: Komponent) {
+      scheduledForUpdate.add(komponent)
+      runUpdate()
+    }
+
     private fun runUpdate() {
       val todo = scheduledForUpdate.sortedBy { komponent -> komponent.createIndex }
 
@@ -193,20 +175,31 @@ abstract class Komponent {
       }
 
       todo.forEach { next ->
-        val element = next.element
+        interceptor(next) {
+          val element = next.element
 
-        if (element is HTMLElement) {
-          if (document.getElementById(element.id) != null) {
+          if (element is HTMLElement) {
             if (next.dirty) {
               if (logRenderEvent) {
                 console.log("Update dirty ${next.createIndex}")
               }
-              next.update()
+              val memoizeHash = next.generateMemoizeHash()
+
+              if (memoizeHash == null || next.lastMemoizeHash != memoizeHash) {
+                next.onBeforeUpdate()
+                next.update()
+                next.lastMemoizeHash = memoizeHash
+                next.onAfterUpdate()
+              } else if (logRenderEvent) {
+                console.log("Skipped render, memoizeHash is equal $next-[$memoizeHash]")
+              }
             } else {
               if (logRenderEvent) {
                 console.log("Skip ${next.createIndex}")
               }
             }
+          } else {
+            console.log("Komponent element is null", next, element)
           }
         }
       }

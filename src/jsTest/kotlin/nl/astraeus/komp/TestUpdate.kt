@@ -1,132 +1,238 @@
 package nl.astraeus.komp
 
-import kotlinx.html.*
+import kotlinx.browser.document
+import kotlinx.html.div
+import kotlinx.html.i
+import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.Node
-import org.w3c.dom.get
+import kotlinx.html.p
+import kotlinx.html.span
+import kotlinx.html.svg
+import kotlinx.html.table
+import kotlinx.html.td
+import kotlinx.html.tr
+import kotlinx.html.unsafe
+import org.w3c.dom.Element
+import org.w3c.dom.HTMLDivElement
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
-fun nodesEqual(node1: Node, node2: Node): Boolean {
-  if (node1.childNodes.length != node1.childNodes.length) {
-    return false
+class TestKomponent : Komponent() {
+  override fun HtmlBuilder.render() {
+    div {
+      +"Test"
+    }
   }
-  if (node1 is HTMLElement && node2 is HTMLElement) {
-    if (node1.attributes.length != node2.attributes.length) {
-      return false
-    }
-    for (index in 0 until node1.attributes.length) {
-      node1.attributes[index]?.also { attr1 ->
-        val attr2 = node2.getAttribute(attr1.name)
+}
 
-        if (attr1.value != attr2) {
-          return false
-        }
-      }
+class Child1 : Komponent() {
+  override fun HtmlBuilder.render() {
+    div {
+      +"Child 1"
     }
-    for (index in 0 until node1.childNodes.length) {
-      node1.childNodes[index]?.also { child1 ->
-        node2.childNodes[index]?.also { child2 ->
-          if (!nodesEqual(child1, child2)) {
-            return false
+  }
+}
+
+class Child2 : Komponent() {
+  override fun HtmlBuilder.render() {
+    div {
+      +"Child 2"
+    }
+  }
+}
+
+class SimpleKomponent : Komponent() {
+  var hello = true
+  var append = HtmlBuilder.create {
+    p {
+      +"Appended"
+    }
+  }
+
+  override fun HtmlBuilder.render() {
+    div("div_class") {
+      span {
+        svg {
+          unsafe {
+            +"""
+              <p bla>
+            """.trimIndent()
+          }
+        }
+        if (hello) {
+          div {
+            +"Hello"
+          }
+        } else {
+          span {
+            +"Good bye"
           }
         }
       }
+      div {
+        if (hello) {
+          id = "123"
+          +"div text"
+        } else {
+          +"div text goodbye"
+        }
+
+        onClickFunction = if (hello) {
+          {
+            println("onClick")
+          }
+        } else {
+          {
+            println("onClick 2")
+          }
+        }
+      }
+      if (hello) {
+        span {
+          +"2nd span"
+        }
+      }
+      //append(append)
+      if (hello) {
+        include(Child1())
+      } else {
+        include(Child2())
+      }
+      //append(append)
     }
   }
-  return true
+
+}
+
+class IncludeKomponent(
+  var text: String = "My Text"
+) : Komponent() {
+
+  override fun generateMemoizeHash(): Int = text.hashCode()
+
+  override fun HtmlBuilder.render() {
+    span {
+      +text
+    }
+  }
+}
+
+class ReplaceKomponent : Komponent() {
+  val includeKomponent = IncludeKomponent()
+  var includeSpan = true
+
+  override fun generateMemoizeHash(): Int = includeSpan.hashCode() * 7 + includeKomponent.generateMemoizeHash()
+
+  override fun HtmlBuilder.render() {
+    div {
+      +"Child 2"
+
+      div {
+        if (includeSpan) {
+          span {
+            i("fas fa-eye") {
+              +"span1"
+            }
+          }
+          span {
+            i("fas fa-eye") {
+              +"span2"
+            }
+          }
+          span {
+            i("fas fa-eye") {
+              +"span3"
+            }
+          }
+        }
+
+        include(includeKomponent)
+      }
+    }
+  }
 }
 
 class TestUpdate {
 
   @Test
-  fun testCompare1() {
-    val dom1 = HtmlBuilder.create {
-      div {
-        div(classes = "bla") {
-          span {
-            +" Some Text "
-          }
-          table {
-            tr {
-              td {
-                +"Table column"
-              }
-            }
-          }
-        }
-      }
-    }
+  fun testUpdateWithEmpty() {
+    val div = document.createElement("div") as HTMLDivElement
+    val rk = ReplaceKomponent()
 
-    val dom2 = HtmlBuilder.create {
-      div {
-        span {
-          id = "123"
+    Komponent.logRenderEvent = true
 
-          +"New dom!"
-        }
-        input {
-          value = "bla"
-        }
-      }
-    }
+    Komponent.create(div, rk)
 
-    DiffPatch.updateNode(dom1, dom2)
+    println("ReplaceKomponent: ${div.printTree()}")
 
-    assertTrue(nodesEqual(dom1, dom2), "Updated dom not equal to original")
+    rk.requestImmediateUpdate()
+
+    println("ReplaceKomponent: ${div.printTree()}")
+
+    rk.requestImmediateUpdate()
+
+    println("ReplaceKomponent: ${div.printTree()}")
+
+    rk.includeSpan = false
+    rk.requestImmediateUpdate()
+
+    println("ReplaceKomponent: ${div.printTree()}")
+
+    rk.includeSpan = true
+    rk.includeKomponent.text = "New Text"
+    rk.requestImmediateUpdate()
+
+    println("ReplaceKomponent: ${div.printTree()}")
   }
 
   @Test
-  fun testCompare2() {
-    val dom1 = HtmlBuilder.create {
-      div {
-        div(classes = "bla") {
-          span {
-            +" Some Text "
-          }
-          table {
-            tr {
-              th {
-                + "Header"
-              }
+  fun testSimpleKomponent() {
+    val sk = SimpleKomponent()
+    val div = document.createElement("div") as HTMLDivElement
+
+    Komponent.create(div, sk)
+
+    println("SimpleKomponent: ${div.printTree()}")
+
+    sk.hello = false
+    sk.requestImmediateUpdate()
+
+    println("SimpleKomponent updated: ${div.printTree()}")
+  }
+
+  @Test
+  fun testCreate() {
+    var elemTest: Element? = null
+    val element = HtmlBuilder.create {
+      div("div_class") {
+        id = "123"
+        +"Test"
+
+        span("span_class") {
+          +"Span"
+
+          elemTest = currentElement()
+        }
+
+        table {
+          tr {
+            td {
+              +"column 1"
             }
-            tr {
-              td {
-                +"Table column"
-              }
+            td {
+              +"column 2"
             }
           }
         }
       }
     }
 
-    val dom2 = HtmlBuilder.create {
-      div {
-        div {
-          span {
-            + "Other text"
-          }
-        }
-        span {
-          id = "123"
-
-          +"New dom!"
-        }
-        input {
-          value = "bla"
-
-          onClickFunction = {
-            println("Clickerdyclick!")
-          }
-        }
-      }
-    }
-
-    Komponent.logReplaceEvent = true
-    DiffPatch.updateNode(dom1, dom2)
-
-    assertTrue(nodesEqual(dom1, dom2), "Updated dom not equal to original")
+    println("Element: ${element.printTree()}")
+    println("divTst: ${elemTest?.printTree()}")
+    println("span class: ${
+      elemTest?.getAttributeNames()?.joinToString
+      { "," }
+    }"
+    )
   }
 
 }

@@ -12,5 +12,3 @@ pluginManagement {
 }
 
 rootProject.name = "komp"
-
-enableFeaturePreview("GRADLE_METADATA")

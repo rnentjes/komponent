@@ -1,27 +1,23 @@
 
 plugins {
-    kotlin("multiplatform") version "1.4.32"
+    kotlin("multiplatform") version "1.5.21"
     `maven-publish`
 }
 
 group = "nl.astraeus"
-version = "0.2.6-SNAPSHOT"
+version = "0.5.7-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 kotlin {
-    /* Targets configuration omitted. 
-    *  To find out how to configure the targets, please follow the link:
-    *  https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#setting-up-targets */
     js(BOTH) {
         browser {
-            //produceKotlinLibrary()
             testTask {
                 useKarma {
-                    useChromeHeadless()
+                    useChromiumHeadless()
+                    //useChromeHeadless()
                 }
             }
         }
@@ -32,7 +28,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-common"))
 
-                api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.2")
+                api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.3")
             }
         }
         val jsMain by getting {
@@ -53,7 +49,7 @@ publishing {
         if (project.properties["nexusUsername"] != null) {
             maven {
                 name = "releases"
-                url = uri("http://nexus.astraeus.nl/nexus/content/repositories/releases")
+                url = uri("https://nexus.astraeus.nl/nexus/content/repositories/releases")
                 credentials {
                     val nexusUsername: String by project
                     val nexusPassword: String by project
@@ -64,7 +60,7 @@ publishing {
             }
             maven {
                 name = "snapshots"
-                url = uri("http://nexus.astraeus.nl/nexus/content/repositories/snapshots")
+                url = uri("https://nexus.astraeus.nl/nexus/content/repositories/snapshots")
                 credentials {
                     val nexusUsername: String by project
                     val nexusPassword: String by project

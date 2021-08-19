@@ -1,4 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
+build
+.gradle
 web/js/generated
 gradle.properties
 local.properties
