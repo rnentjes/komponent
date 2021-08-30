@@ -103,6 +103,12 @@
         <element id="module-output" name="komp.jsMain" />
       </root>
     </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.8-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.8-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
   </component>
   <component name="CheckStyle-IDEA">
     <option name="configuration">
