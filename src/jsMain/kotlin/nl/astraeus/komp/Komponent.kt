@@ -4,7 +4,6 @@ import kotlinx.browser.window
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
-import org.w3c.dom.css.CSSStyleDeclaration
 import org.w3c.dom.get
 import kotlin.reflect.KProperty
 
@@ -40,13 +39,12 @@ abstract class Komponent {
   private var lastMemoizeHash: Int? = null
 
   var element: Node? = null
-  val declaredStyles: MutableMap<String, CSSStyleDeclaration> = HashMap()
 
   open fun create(parent: Element, childIndex: Int? = null) {
     onBeforeUpdate()
     val builder = HtmlBuilder(
       parent,
-      childIndex ?: parent.childElementCount
+      childIndex ?: parent.childNodes.length
     )
 
     builder.render()

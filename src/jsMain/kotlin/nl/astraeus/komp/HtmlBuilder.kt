@@ -112,7 +112,7 @@ private fun Element.getKompAttributes(): MutableSet<String> {
   return result
 }
 
-private fun Element.setKompAttribute(name: String, value: String) {
+fun Element.setKompAttribute(name: String, value: String) {
   val setAttrs: MutableSet<String> = getKompAttributes()
   setAttrs.add(name)
 
@@ -388,7 +388,7 @@ class HtmlBuilder(
             element.focus()
           }
 
-          if (!setAttrs.contains(attr.name)) {
+          if (attr.name != "style" && !setAttrs.contains(attr.name)) {
             if (element is HTMLInputElement) {
               if (attr.name == "checkbox") {
                 element.checked = false
@@ -515,7 +515,7 @@ class HtmlBuilder(
       val container = document.createElement("div") as HTMLElement
       val consumer = HtmlBuilder(container, 0)
       content.invoke(consumer)
-      return consumer.root ?: error("error")
+      return consumer.root ?: error("No root element found after render!")
     }
   }
 }
