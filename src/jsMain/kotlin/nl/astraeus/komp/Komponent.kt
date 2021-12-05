@@ -114,8 +114,8 @@ abstract class Komponent {
 
     val parent = currentElement.parentElement as? HTMLElement ?: error("parent is null!?")
     var childIndex = 0
-    for (index in 0 until parent.children.length) {
-      if (parent.children[index] == currentElement) {
+    for (index in 0 until parent.childNodes.length) {
+      if (parent.childNodes[index] == currentElement) {
         childIndex = index
       }
     }
@@ -140,7 +140,7 @@ abstract class Komponent {
     var logReplaceEvent = false
     var unsafeMode = UnsafeMode.UNSAFE_DISABLED
 
-    fun create(parent: HTMLElement, component: Komponent, insertAsFirst: Boolean = false) {
+    fun create(parent: HTMLElement, component: Komponent) {
       component.create(parent)
     }
 

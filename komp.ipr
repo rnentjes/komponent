@@ -109,6 +109,12 @@
         <element id="module-output" name="komp.jsMain" />
       </root>
     </artifact>
+    <artifact type="jar" name="komp-jslegacy-0.5.9-SNAPSHOT">
+      <output-path>$PROJECT_DIR$/build/libs</output-path>
+      <root id="archive" name="komp-jslegacy-0.5.9-SNAPSHOT.jar">
+        <element id="module-output" name="komp.jsMain" />
+      </root>
+    </artifact>
   </component>
   <component name="CheckStyle-IDEA">
     <option name="configuration">
@@ -316,9 +322,6 @@
       <H2CodeStyleSettings version="6">
         <option name="USE_GENERAL_STYLE" value="false" />
       </H2CodeStyleSettings>
-      <H2CodeStyleSettings version="6">
-        <option name="USE_GENERAL_STYLE" value="false" />
-      </H2CodeStyleSettings>
       <JavaCodeStyleSettings>
         <option name="ANNOTATION_PARAMETER_WRAP" value="5" />
         <option name="ALIGN_MULTILINE_ANNOTATION_PARAMETERS" value="true" />
@@ -432,13 +435,6 @@
       <option name="url" value="https://jcenter.bintray.com/" />
     </remote-repository>
   </component>
-  <component name="RunConfigurationProducerService">
-    <option name="ignoredProducers">
-      <set>
-        <option value="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer" />
-      </set>
-    </option>
-  </component>
   <component name="RunManager">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="WIDTH" value="400" />
@@ -502,7 +498,6 @@
     <mapping directory="" vcs="Git" />
   </component>
   <component name="accountSettings">
-    <option name="activeRegion" value="us-east-1" />
     <option name="recentlyUsedRegions">
       <list>
         <option value="us-east-1" />

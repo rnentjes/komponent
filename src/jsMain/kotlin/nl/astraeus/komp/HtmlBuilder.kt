@@ -272,11 +272,11 @@ class HtmlBuilder(
   }
 
   override fun onTagStart(tag: Tag) {
-    //logReplace"onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition")
+    logReplace("onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition")
     currentNode = currentPosition.currentElement()
 
     if (currentNode == null) {
-      //logReplace"onTagStart, currentNode1: $currentNode")
+      logReplace("onTagStart, currentNode1: $currentNode")
       currentNode = if (tag.namespace != null) {
         document.createElementNS(tag.namespace, tag.tagName)
       } else {
@@ -292,8 +292,8 @@ class HtmlBuilder(
               !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
           )
     ) {
-      //logReplace"onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}")
-      //logReplace"onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}")
+      logReplace("onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}")
+      logReplace("onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}")
       currentNode = if (tag.namespace != null) {
         document.createElementNS(tag.namespace, tag.tagName)
       } else {
