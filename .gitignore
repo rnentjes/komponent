@@ -4,3 +4,6 @@ build
 web/js/generated
 gradle.properties
 local.properties
+*.iml
+*.ipr
+*.iws
