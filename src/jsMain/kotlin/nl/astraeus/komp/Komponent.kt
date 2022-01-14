@@ -1,31 +1,15 @@
 package nl.astraeus.komp
 
 import kotlinx.browser.window
+import kotlinx.html.FlowOrMetaDataOrPhrasingContent
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.Node
 import org.w3c.dom.get
 import kotlin.reflect.KProperty
 
-class StateDelegate<T>(
-  val komponent: Komponent,
-  initialValue: T
-) {
-  var value: T = initialValue
-
-  operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-    return value
-  }
-
-  operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-    if (this.value?.equals(value) != true) {
-      this.value = value
-      komponent.requestUpdate()
-    }
-  }
-}
-
-inline fun <reified T> Komponent.state(initialValue: T): StateDelegate<T> = StateDelegate(this, initialValue)
+private var currentKomponent: Komponent? = null
+fun FlowOrMetaDataOrPhrasingContent.currentKomponent(): Komponent =
+  currentKomponent ?: error("No current komponent defined! Only call from render code!")
 
 enum class UnsafeMode {
   UNSAFE_ALLOWED,
@@ -33,12 +17,23 @@ enum class UnsafeMode {
   UNSAFE_SVG_ONLY
 }
 
+var Element.memoizeHash: String?
+  get() {
+    return getAttribute("memoize-hash")
+  }
+  set(value) {
+    if (value != null) {
+      setAttribute("memoize-hash", value.toString())
+    } else {
+      removeAttribute("memoize-hash")
+    }
+  }
+
 abstract class Komponent {
   val createIndex = getNextCreateIndex()
   private var dirty: Boolean = true
-  private var lastMemoizeHash: Int? = null
 
-  var element: Node? = null
+  var element: Element? = null
 
   open fun create(parent: Element, childIndex: Int? = null) {
     onBeforeUpdate()
@@ -47,13 +42,30 @@ abstract class Komponent {
       childIndex ?: parent.childNodes.length
     )
 
+    currentKomponent = this
     builder.render()
+    currentKomponent = null
+
     element = builder.root
-    lastMemoizeHash = generateMemoizeHash()
+    updateMemoizeHash()
     onAfterUpdate()
   }
 
-  fun memoizeChanged() = lastMemoizeHash == null || lastMemoizeHash != generateMemoizeHash()
+  fun memoizeChanged() = element?.memoizeHash == null || element?.memoizeHash != fullMemoizeHash()
+
+  fun updateMemoizeHash() {
+    element?.memoizeHash = fullMemoizeHash()
+  }
+
+  private fun fullMemoizeHash(): String? {
+    val generated = generateMemoizeHash()
+
+    return if (generated != null) {
+      "${this::class.simpleName}:${generateMemoizeHash()}"
+    } else {
+      null
+    }
+  }
 
   abstract fun HtmlBuilder.render()
 
@@ -121,7 +133,11 @@ abstract class Komponent {
     }
     val consumer = HtmlBuilder(parent, childIndex)
     consumer.root = null
+
+    currentKomponent = this
     consumer.render()
+    currentKomponent = null
+
     element = consumer.root
     dirty = false
   }
@@ -138,6 +154,7 @@ abstract class Komponent {
 
     var logRenderEvent = false
     var logReplaceEvent = false
+    var enableAssertions = false
     var unsafeMode = UnsafeMode.UNSAFE_DISABLED
 
     fun create(parent: HTMLElement, component: Komponent) {
@@ -183,10 +200,10 @@ abstract class Komponent {
               }
               val memoizeHash = next.generateMemoizeHash()
 
-              if (memoizeHash == null || next.lastMemoizeHash != memoizeHash) {
+              if (next.memoizeChanged()) {
                 next.onBeforeUpdate()
                 next.update()
-                next.lastMemoizeHash = memoizeHash
+                next.updateMemoizeHash()
                 next.onAfterUpdate()
               } else if (logRenderEvent) {
                 console.log("Skipped render, memoizeHash is equal $next-[$memoizeHash]")

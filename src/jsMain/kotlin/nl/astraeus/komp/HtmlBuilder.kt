@@ -24,154 +24,8 @@ interface HtmlConsumer : TagConsumer<Element> {
   fun debug(block: HtmlConsumer.() -> Unit)
 }
 
-fun Int.asSpaces(): String {
-  val result = StringBuilder()
-  repeat(this) {
-    result.append(" ")
-  }
-  return result.toString()
-}
-
 fun FlowOrMetaDataOrPhrasingContent.currentElement(): Element =
   currentElement ?: error("No current element defined!")
-
-fun Element.printTree(indent: Int = 0): String {
-  val result = StringBuilder()
-
-  result.append(indent.asSpaces())
-  result.append(tagName)
-  if (this.namespaceURI != "http://www.w3.org/1999/xhtml") {
-    result.append(" [")
-    result.append(namespaceURI)
-    result.append("]")
-  }
-  result.append(" (")
-  var first = true
-  if (hasAttributes()) {
-    for (index in 0 until attributes.length) {
-      if (!first) {
-        result.append(", ")
-      } else {
-        first = false
-      }
-      result.append(attributes[index]?.localName)
-      result.append("=")
-      result.append(attributes[index]?.value)
-    }
-  }
-  result.append(") {")
-  result.append("\n")
-  for ((name, event) in getKompEvents()) {
-    result.append(indent.asSpaces())
-    result.append("on")
-    result.append(name)
-    result.append(" -> ")
-    result.append(event)
-    result.append("\n")
-  }
-  for (index in 0 until childNodes.length) {
-    childNodes[index]?.let {
-      if (it is Element) {
-        result.append(it.printTree(indent + 2))
-      } else {
-        result.append((indent + 2).asSpaces())
-        result.append(it.textContent)
-        result.append("\n")
-      }
-    }
-  }
-  result.append(indent.asSpaces())
-  result.append("}\n")
-
-  return result.toString()
-}
-
-private fun Element.clearKompAttributes() {
-  val attributes = this.asDynamic()["komp-attributes"] as MutableSet<String>?
-
-  if (attributes == null) {
-    this.asDynamic()["komp-attributes"] = mutableSetOf<String>()
-  } else {
-    attributes.clear()
-  }
-
-  if (this is HTMLInputElement) {
-    this.checked = false
-  }
-}
-
-private fun Element.getKompAttributes(): MutableSet<String> {
-  var result: MutableSet<String>? = this.asDynamic()["komp-attributes"] as MutableSet<String>?
-
-  if (result == null) {
-    result = mutableSetOf()
-
-    this.asDynamic()["komp-attributes"] = result
-  }
-
-  return result
-}
-
-fun Element.setKompAttribute(name: String, value: String) {
-  val setAttrs: MutableSet<String> = getKompAttributes()
-  setAttrs.add(name)
-
-  if (this is HTMLInputElement) {
-    when (name) {
-      "checked" -> {
-        this.checked = value == "checked"
-      }
-      "value" -> {
-        this.value = value
-
-      }
-      else -> {
-        setAttribute(name, value)
-      }
-    }
-  } else if (this.getAttribute(name) != value) {
-    setAttribute(name, value)
-  }
-}
-
-private fun Element.clearKompEvents() {
-  for ((name, event) in getKompEvents()) {
-    currentElement?.removeEventListener(name, event)
-  }
-
-  val events = this.asDynamic()["komp-events"] as MutableMap<String, (Event) -> Unit>?
-
-  if (events == null) {
-    this.asDynamic()["komp-events"] = mutableMapOf<String, (Event) -> Unit>()
-  } else {
-    events.clear()
-  }
-}
-
-private fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
-  val eventName: String = if (name.startsWith("on")) {
-    name.substring(2)
-  } else {
-    name
-  }
-
-  val events: MutableMap<String, (Event) -> Unit> = getKompEvents()
-
-  events[eventName]?.let {
-    println("Warn event already defined!")
-    currentElement?.removeEventListener(eventName, it)
-  }
-
-  events[eventName] = event
-
-  this.asDynamic()["komp-events"] = events
-
-  this.addEventListener(eventName, event)
-}
-
-private fun Element.getKompEvents(): MutableMap<String, (Event) -> Unit> {
-  return this.asDynamic()["komp-events"] ?: mutableMapOf()
-}
 
 private data class ElementIndex(
   val parent: Node,
@@ -219,14 +73,13 @@ private fun ArrayList<ElementIndex>.replace(new: Node) {
 private fun Node.asElement() = this as? HTMLElement
 
 class HtmlBuilder(
-  val parent: Element,
-  var childIndex: Int = 0
+  parent: Element,
+  childIndex: Int = 0
 ) : HtmlConsumer {
   private var currentPosition = arrayListOf<ElementIndex>()
   private var inDebug = false
   var currentNode: Node? = null
   var root: Element? = null
-  val currentAttributes: MutableMap<String, String> = mutableMapOf()
 
   init {
     currentPosition.add(ElementIndex(parent, childIndex))
@@ -256,16 +109,19 @@ class HtmlBuilder(
   }
 
   override fun debug(block: HtmlConsumer.() -> Unit) {
+    val enableAssertions = Komponent.enableAssertions
+    Komponent.enableAssertions = true
     inDebug = true
 
     try {
       block.invoke(this)
     } finally {
       inDebug = false
+      Komponent.enableAssertions = enableAssertions
     }
   }
 
-  fun logReplace(msg: String) {
+  private fun logReplace(msg: String) {
     if (Komponent.logReplaceEvent && inDebug) {
       console.log(msg)
     }
@@ -347,7 +203,9 @@ class HtmlBuilder(
   override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) {
     logReplace("onTagAttributeChange, ${tag.tagName} [$attribute, $value]")
 
-    checkTag(tag)
+    if (Komponent.enableAssertions) {
+      checkTag(tag)
+    }
 
     if (value == null) {
       currentElement?.removeAttribute(attribute.lowercase())
@@ -357,9 +215,11 @@ class HtmlBuilder(
   }
 
   override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
-    //logReplace"onTagEvent, ${tag.tagName} [$event, $value]")
+    logReplace("onTagEvent, ${tag.tagName} [$event, $value]")
 
-    checkTag(tag)
+    if (Komponent.enableAssertions) {
+      checkTag(tag)
+    }
 
     currentElement?.setKompEvent(event.lowercase(), value)
   }
@@ -371,7 +231,9 @@ class HtmlBuilder(
       }
     }
 
-    checkTag(tag)
+    if (Komponent.enableAssertions) {
+      checkTag(tag)
+    }
 
     currentPosition.pop()
 

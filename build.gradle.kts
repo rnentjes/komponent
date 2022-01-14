@@ -68,6 +68,7 @@ val javadocJar by tasks.registering(Jar::class) {
 
 publishing {
   repositories {
+    mavenLocal()
     maven {
       name = "releases"
       // change to point to your repo, e.g. http://my.org/repo
