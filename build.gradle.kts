@@ -50,11 +50,11 @@ extra["PUBLISH_VERSION"] = version
 extra["PUBLISH_ARTIFACT_ID"] = name
 
 // Stub secrets to let the project sync and build without the publication values set up
-val signingKeyId: String by project
-val signingPassword: String by project
-val signingSecretKeyRingFile: String by project
-val ossrhUsername: String by project
-val ossrhPassword: String by project
+val signingKeyId: String? by project
+val signingPassword: String? by project
+val signingSecretKeyRingFile: String? by project
+val ossrhUsername: String? by project
+val ossrhPassword: String? by project
 
 extra["signing.keyId"] = signingKeyId
 extra["signing.password"] = signingPassword
@@ -74,8 +74,8 @@ publishing {
       // change to point to your repo, e.g. http://my.org/repo
       url = uri("https://nexus.astraeus.nl/nexus/content/repositories/releases")
       credentials {
-        val nexusUsername: String by project
-        val nexusPassword: String by project
+        val nexusUsername: String? by project
+        val nexusPassword: String? by project
 
         username = nexusUsername
         password = nexusPassword
@@ -86,8 +86,8 @@ publishing {
       // change to point to your repo, e.g. http://my.org/repo
       url = uri("https://nexus.astraeus.nl/nexus/content/repositories/snapshots")
       credentials {
-        val nexusUsername: String by project
-        val nexusPassword: String by project
+        val nexusUsername: String? by project
+        val nexusPassword: String? by project
 
         username = nexusUsername
         password = nexusPassword
