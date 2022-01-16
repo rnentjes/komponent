@@ -1,4 +1,5 @@
 # Table of contents
 
-[home](home.md)
-[getting started](getting-started.md)
+* [home](home.md)
+* [getting started](getting-started.md)
+
