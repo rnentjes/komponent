@@ -2,20 +2,41 @@ package nl.astraeus.komp
 
 import kotlin.reflect.KProperty
 
-class StateDelegate<T>(
-  val komponent: Komponent,
-  initialValue: T
-) {
-  var value: T = initialValue
+interface Delegate<T> {
 
   operator fun getValue(
+    thisRef: Any?,
+    property: KProperty<*>
+  ): T
+
+  operator fun setValue(
+    thisRef: Any?,
+    property: KProperty<*>,
+    value: T
+  )
+}
+
+
+open class StateDelegate<T>(
+  val komponent: Komponent,
+  initialValue: T
+) : Delegate<T> {
+  private var value: T = initialValue
+
+  init {
+    if (value is MutableCollection<*>) {
+      error("Use mutableList to create a collection!")
+    }
+  }
+
+  override operator fun getValue(
     thisRef: Any?,
     property: KProperty<*>
   ): T {
     return value
   }
 
-  operator fun setValue(
+  override operator fun setValue(
     thisRef: Any?,
     property: KProperty<*>,
     value: T
@@ -29,7 +50,7 @@ class StateDelegate<T>(
 
 inline fun <reified T> Komponent.state(
   initialValue: T
-): StateDelegate<T> = StateDelegate(
-  this,
-  initialValue
-)
+): Delegate<T> = StateDelegate(
+      this,
+      initialValue
+    )
