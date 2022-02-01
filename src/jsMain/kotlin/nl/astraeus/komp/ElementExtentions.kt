@@ -152,3 +152,15 @@ internal fun Element.getKompEvents(): MutableMap<String, (Event) -> Unit> {
   return this.asDynamic()["komp-events"] ?: mutableMapOf()
 }
 
+internal fun Element.findElementIndex(): Int {
+  val childNodes = parentElement?.children
+  if (childNodes != null) {
+    for (index in 0 until childNodes.length) {
+      if (childNodes[index] == this) {
+        return index
+      }
+    }
+  }
+
+  return 0
+}

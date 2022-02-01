@@ -1,13 +1,14 @@
 # Table of contents
 
-* [home](home.md)
-* [getting started](getting-started.md)
+* [Home](home.md)
+* [Getting started](getting-started.md)
+* [How it works](how-it-works.md)
 
 # Getting started
 
 To get started create a new kotlin project in intellij of the type 'Browser application'
 
-![Create 'Browser Application' project](/docs/img/create-project.png "Create 'Browser Application' project")
+![Create 'Browser Application' project](/docs/img/create-project.png)
 
 Add the 'sourceSets' block with the kotlin-komponent dependency so your build.gradle.kts looks like this:
 
@@ -43,7 +44,7 @@ kotlin {
 
 Refresh the gradle project to import the dependency.
 
-There is now only one kt file in the project called Simple.kt, it should look like this:
+There is now only one kotlin source file in the project called Simple.kt, it should look something like this:
 
 ```kotin
 fun main() {
@@ -122,6 +123,16 @@ First in the main we add our TestKomponent to the document body with the followi
 The TestKomponent.render method will be called to render our Komponent. 
 As you can see events can be attached inline with the on<event>Function methods.
 The requestUpdate method will call the render method again and update the page accordingly.
+
+After building the application you will find it in /build/distributions.
+
+In the index.html page you will find the following line:
+
+```html
+<div id="root"></div>
+```
+
+This line is not needed for kotlin-komponent.
 
 If you like you can use some helpers that will automatically call the requestUpdate method if
 the data changes, that would look like this:

@@ -5,7 +5,6 @@ import kotlinx.html.FlowOrMetaDataOrPhrasingContent
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
-import kotlin.reflect.KProperty
 
 private var currentKomponent: Komponent? = null
 fun FlowOrMetaDataOrPhrasingContent.currentKomponent(): Komponent =
@@ -38,13 +37,19 @@ abstract class Komponent {
   open fun create(parent: Element, childIndex: Int? = null) {
     onBeforeUpdate()
     val builder = HtmlBuilder(
+      this,
       parent,
       childIndex ?: parent.childNodes.length
     )
 
-    currentKomponent = this
-    builder.render()
-    currentKomponent = null
+    try {
+      currentKomponent = this
+      builder.render()
+    } catch(e: KomponentException) {
+      errorHandler(e)
+    } finally {
+      currentKomponent = null
+    }
 
     element = builder.root
     updateMemoizeHash()
@@ -117,7 +122,7 @@ abstract class Komponent {
    */
   open fun generateMemoizeHash(): Int? = null
 
-  internal fun refresh() {
+  private fun refresh() {
     val currentElement = element
 
     check(currentElement != null) {
@@ -131,14 +136,19 @@ abstract class Komponent {
         childIndex = index
       }
     }
-    val consumer = HtmlBuilder(parent, childIndex)
-    consumer.root = null
+    val builder = HtmlBuilder(this, parent, childIndex)
+    builder.root = null
 
-    currentKomponent = this
-    consumer.render()
-    currentKomponent = null
+    try {
+      currentKomponent = this
+      builder.render()
+    } catch(e: KomponentException) {
+      errorHandler(e)
+    } finally {
+      currentKomponent = null
+    }
 
-    element = consumer.root
+    element = builder.root
     dirty = false
   }
 
@@ -149,6 +159,18 @@ abstract class Komponent {
   companion object {
     private var nextCreateIndex: Int = 1
     private var updateCallback: Int? = null
+    private var errorHandler: (KomponentException) -> Unit = { ke ->
+      console.error("Render error in Komponent", ke)
+
+      ke.element?.innerHTML = """<div class="komponent-error">Render error!</div>"""
+
+      window.alert("""
+        Error in Komponent '${ke.komponent}', ${ke.message}
+        Tag: ${ke.tag.tagName}
+        See console log for details
+        Position: ${ke.position}""".trimIndent()
+      )
+    }
     private var scheduledForUpdate = mutableSetOf<Komponent>()
     private var interceptor: (Komponent, () -> Unit) -> Unit = { _, block -> block() }
 
@@ -159,6 +181,10 @@ abstract class Komponent {
 
     fun create(parent: HTMLElement, component: Komponent) {
       component.create(parent)
+    }
+
+    fun setErrorHandler(handler: (KomponentException) -> Unit) {
+      errorHandler = handler
     }
 
     fun setUpdateInterceptor(block: (Komponent, () -> Unit) -> Unit) {

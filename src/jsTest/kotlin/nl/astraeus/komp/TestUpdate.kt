@@ -61,6 +61,8 @@ class SimpleKomponent : Komponent() {
         if (hello) {
           div {
             +"Hello"
+
+            throw IllegalStateException("Bloe")
           }
         } else {
           span {

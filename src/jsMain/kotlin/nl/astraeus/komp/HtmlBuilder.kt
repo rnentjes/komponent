@@ -73,11 +73,13 @@ private fun ArrayList<ElementIndex>.replace(new: Node) {
 private fun Node.asElement() = this as? HTMLElement
 
 class HtmlBuilder(
+  val komponent: Komponent?,
   parent: Element,
-  childIndex: Int = 0
+  childIndex: Int = 0,
 ) : HtmlConsumer {
   private var currentPosition = arrayListOf<ElementIndex>()
   private var inDebug = false
+  private var exceptionThrown = false
   var currentNode: Node? = null
   var root: Element? = null
 
@@ -225,6 +227,10 @@ class HtmlBuilder(
   }
 
   override fun onTagEnd(tag: Tag) {
+    if (exceptionThrown) {
+      return
+    }
+
     while (currentPosition.currentElement() != null) {
       currentPosition.currentElement()?.let {
         it.parentElement?.removeChild(it)
@@ -237,31 +243,33 @@ class HtmlBuilder(
 
     currentPosition.pop()
 
-    val setAttrs: List<String> = currentElement.asDynamic()["komp-attributes"] ?: listOf()
+    if (currentElement != null) {
+      val setAttrs: List<String> = currentElement?.asDynamic()["komp-attributes"] ?: listOf()
 
-    // remove attributes that where not set
-    val element = currentElement
-    if (element?.hasAttributes() == true) {
-      for (index in 0 until element.attributes.length) {
-        val attr = element.attributes[index]
-        if (attr != null) {
+      // remove attributes that where not set
+      val element = currentElement
+      if (element?.hasAttributes() == true) {
+        for (index in 0 until element.attributes.length) {
+          val attr = element.attributes[index]
+          if (attr != null) {
 
-          if (element is HTMLElement && attr.name == "data-has-focus" && "true" == attr.value) {
-            element.focus()
-          }
+            if (element is HTMLElement && attr.name == "data-has-focus" && "true" == attr.value) {
+              element.focus()
+            }
 
-          if (attr.name != "style" && !setAttrs.contains(attr.name)) {
-            if (element is HTMLInputElement) {
-              if (attr.name == "checkbox") {
-                element.checked = false
-              } else if (attr.name == "value") {
-                element.value = ""
+            if (attr.name != "style" && !setAttrs.contains(attr.name)) {
+              if (element is HTMLInputElement) {
+                if (attr.name == "checkbox") {
+                  element.checked = false
+                } else if (attr.name == "value") {
+                  element.value = ""
+                }
+              } else {
+                if (Komponent.logReplaceEvent) {
+                  console.log("Clear attribute [${attr.name}]  on $element)")
+                }
+                element.removeAttribute(attr.name)
               }
-            } else {
-              if (Komponent.logReplaceEvent) {
-                console.log("Clear attribute [${attr.name}]  on $element)")
-              }
-              element.removeAttribute(attr.name)
             }
           }
         }
@@ -367,6 +375,43 @@ class HtmlBuilder(
     currentPosition.nextElement()
   }
 
+  override fun onTagError(tag: Tag, exception: Throwable) {
+    exceptionThrown = true
+
+    if (exception !is KomponentException) {
+      val position = mutableListOf<Element>()
+      var ce = currentElement
+      while(ce != null) {
+        position.add(ce)
+        ce = ce.parentElement
+      }
+      val builder = StringBuilder()
+      for (element in position.reversed()) {
+        builder.append("> ")
+        builder.append(element.tagName)
+        builder.append("[")
+        builder.append(element.findElementIndex())
+        builder.append("]")
+        if (element.hasAttribute("class")) {
+          builder.append("(")
+          builder.append(element.getAttribute("class"))
+          builder.append(")")
+        }
+        builder.append(" ")
+      }
+      throw KomponentException(
+        komponent,
+        currentElement,
+        tag,
+        builder.toString(),
+        exception.message ?: "error",
+        exception
+      )
+    } else {
+      throw exception
+    }
+  }
+
   override fun finalize(): Element {
     //logReplace"finalize, currentPosition: $currentPosition")
     return root ?: throw IllegalStateException("We can't finalize as there was no tags")
@@ -375,7 +420,7 @@ class HtmlBuilder(
   companion object {
     fun create(content: HtmlBuilder.() -> Unit): Element {
       val container = document.createElement("div") as HTMLElement
-      val consumer = HtmlBuilder(container, 0)
+      val consumer = HtmlBuilder(null, container, 0)
       content.invoke(consumer)
       return consumer.root ?: error("No root element found after render!")
     }

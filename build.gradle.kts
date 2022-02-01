@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "nl.astraeus"
-version = "1.0.1-SNAPSHOT"
+version = "1.0.1"
 
 repositories {
   mavenCentral()
@@ -18,7 +18,6 @@ kotlin {
       testTask {
         useKarma {
           useChromiumHeadless()
-          //useChromeHeadless()
         }
       }
     }
@@ -72,7 +71,7 @@ publishing {
     maven {
       name = "releases"
       // change to point to your repo, e.g. http://my.org/repo
-      url = uri("https://nexus.astraeus.nl/nexus/content/repositories/releases")
+      setUrl("https://nexus.astraeus.nl/nexus/content/repositories/releases")
       credentials {
         val nexusUsername: String? by project
         val nexusPassword: String? by project
@@ -84,7 +83,7 @@ publishing {
     maven {
       name = "snapshots"
       // change to point to your repo, e.g. http://my.org/repo
-      url = uri("https://nexus.astraeus.nl/nexus/content/repositories/snapshots")
+      setUrl("https://nexus.astraeus.nl/nexus/content/repositories/snapshots")
       credentials {
         val nexusUsername: String? by project
         val nexusPassword: String? by project
