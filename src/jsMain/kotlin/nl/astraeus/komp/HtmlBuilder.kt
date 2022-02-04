@@ -263,6 +263,8 @@ class HtmlBuilder(
                   element.checked = false
                 } else if (attr.name == "value") {
                   element.value = ""
+                } else if (attr.name == "class") {
+                  element.className = ""
                 }
               } else {
                 if (Komponent.logReplaceEvent) {
