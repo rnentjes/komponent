@@ -40,14 +40,6 @@ fun Element.printTree(indent: Int = 0): String {
   }
   result.append(") {")
   result.append("\n")
-  for ((name, event) in getKompEvents()) {
-    result.append(indent.asSpaces())
-    result.append("on")
-    result.append(name)
-    result.append(" -> ")
-    result.append(event)
-    result.append("\n")
-  }
   for (index in 0 until childNodes.length) {
     childNodes[index]?.let {
       if (it is Element) {
@@ -65,65 +57,36 @@ fun Element.printTree(indent: Int = 0): String {
   return result.toString()
 }
 
-internal fun Element.clearKompAttributes() {
-  val attributes = this.asDynamic()["komp-attributes"] as MutableSet<String>?
+internal fun Element.setKompAttribute(name: String, value: String?) {
+//  val setAttrs: MutableSet<String> = getKompAttributes()
+//  setAttrs.add(name)
+  //getNewAttributes().add(name)
 
-  if (attributes == null) {
-    this.asDynamic()["komp-attributes"] = mutableSetOf<String>()
-  } else {
-    attributes.clear()
-  }
-
-  if (this is HTMLInputElement) {
-    this.checked = false
-  }
-}
-
-internal fun Element.getKompAttributes(): MutableSet<String> {
-  var result: MutableSet<String>? = this.asDynamic()["komp-attributes"] as MutableSet<String>?
-
-  if (result == null) {
-    result = mutableSetOf()
-
-    this.asDynamic()["komp-attributes"] = result
-  }
-
-  return result
-}
-
-internal fun Element.setKompAttribute(name: String, value: String) {
-  val setAttrs: MutableSet<String> = getKompAttributes()
-  setAttrs.add(name)
-
-  if (this is HTMLInputElement) {
-    when (name) {
-      "checked" -> {
-        this.checked = value == "checked"
-      }
-      "value" -> {
-        this.value = value
-
-      }
-      else -> {
-        setAttribute(name, value)
-      }
+  if (value == null || value.isBlank()) {
+    if (this is HTMLInputElement) {
+      checked = false
+    } else {
+      removeAttribute(name)
     }
-  } else if (this.getAttribute(name) != value) {
-    setAttribute(name, value)
-  }
-}
-
-internal fun Element.clearKompEvents() {
-  for ((name, event) in getKompEvents()) {
-    removeEventListener(name, event)
-  }
-
-  val events = this.asDynamic()["komp-events"] as MutableMap<String, (Event) -> Unit>?
-
-  if (events == null) {
-    this.asDynamic()["komp-events"] = mutableMapOf<String, (Event) -> Unit>()
   } else {
-    events.clear()
+    if (this is HTMLInputElement) {
+      when (name) {
+        "checked" -> {
+          checked = "checked" == value
+        }
+        "class" -> {
+          className = value
+        }
+        "value" -> {
+          this.value = value
+        }
+        else -> {
+          setAttribute(name, value)
+        }
+      }
+    } else if (this.getAttribute(name) != value) {
+      setAttribute(name, value)
+    }
   }
 }
 
@@ -134,22 +97,7 @@ internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
     name
   }
 
-  val events: MutableMap<String, (Event) -> Unit> = getKompEvents()
-
-  events[eventName]?.let {
-    println("Warn event '$eventName' already defined!")
-    removeEventListener(eventName, it)
-  }
-
-  events[eventName] = event
-
-  this.asDynamic()["komp-events"] = events
-
   this.addEventListener(eventName, event)
-}
-
-internal fun Element.getKompEvents(): MutableMap<String, (Event) -> Unit> {
-  return this.asDynamic()["komp-events"] ?: mutableMapOf()
 }
 
 internal fun Element.findElementIndex(): Int {

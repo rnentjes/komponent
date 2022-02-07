@@ -1,9 +1,11 @@
 package nl.astraeus.komp
 
 import kotlinx.browser.document
+import kotlinx.html.InputType
 import kotlinx.html.div
 import kotlinx.html.i
 import kotlinx.html.id
+import kotlinx.html.input
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.p
 import kotlinx.html.span
@@ -50,6 +52,10 @@ class SimpleKomponent : Komponent() {
 
   override fun HtmlBuilder.render() {
     div("div_class") {
+      input(InputType.checkBox) {
+        name = "helloInput"
+        checked = hello
+      }
       span {
         svg {
           unsafe {
@@ -61,8 +67,6 @@ class SimpleKomponent : Komponent() {
         if (hello) {
           div {
             +"Hello"
-
-            throw IllegalStateException("Bloe")
           }
         } else {
           span {

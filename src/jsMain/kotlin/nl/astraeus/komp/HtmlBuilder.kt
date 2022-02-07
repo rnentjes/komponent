@@ -9,7 +9,6 @@ import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.Node
 import org.w3c.dom.asList
@@ -143,15 +142,10 @@ class HtmlBuilder(
 
       //logReplace"onTagStart, currentElement1.1: $currentNode")
       currentPosition.currentParent().appendChild(currentNode!!)
-    } else if (
-      !currentNode?.asElement()?.tagName.equals(tag.tagName, true) ||
-      (
-          tag.namespace != null &&
-              !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
-          )
-    ) {
+    } else {
       logReplace("onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}")
       logReplace("onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}")
+
       currentNode = if (tag.namespace != null) {
         document.createElementNS(tag.namespace, tag.tagName)
       } else {
@@ -159,9 +153,6 @@ class HtmlBuilder(
       }
 
       currentPosition.replace(currentNode!!)
-    } else {
-      //logReplace"onTagStart, same node type")
-
     }
 
     currentElement = currentNode as? Element ?: currentElement
@@ -172,11 +163,9 @@ class HtmlBuilder(
         root = currentNode as Element
       }
 
-      currentElement?.clearKompAttributes()
-      currentElement?.clearKompEvents()
-
       for (entry in tag.attributesEntries) {
-        currentElement!!.setKompAttribute(entry.key.lowercase(), entry.value)
+        val attributeName = entry.key.lowercase()
+        currentElement!!.setKompAttribute(attributeName, entry.value)
       }
 
       if (tag.namespace != null) {
@@ -185,8 +174,6 @@ class HtmlBuilder(
         (currentNode as? Element)?.innerHTML = ""
       }
     }
-
-    //logReplace"onTagStart, currentElement2: $currentNode")
 
     currentPosition.push(currentNode!!)
   }
@@ -209,11 +196,9 @@ class HtmlBuilder(
       checkTag(tag)
     }
 
-    if (value == null) {
-      currentElement?.removeAttribute(attribute.lowercase())
-    } else {
-      currentElement?.setKompAttribute(attribute.lowercase(), value)
-    }
+    val attributeName = attribute.lowercase()
+
+    currentElement?.setKompAttribute(attributeName, value)
   }
 
   override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
@@ -242,41 +227,6 @@ class HtmlBuilder(
     }
 
     currentPosition.pop()
-
-    if (currentElement != null) {
-      val setAttrs: List<String> = currentElement?.asDynamic()["komp-attributes"] ?: listOf()
-
-      // remove attributes that where not set
-      val element = currentElement
-      if (element?.hasAttributes() == true) {
-        for (index in 0 until element.attributes.length) {
-          val attr = element.attributes[index]
-          if (attr != null) {
-
-            if (element is HTMLElement && attr.name == "data-has-focus" && "true" == attr.value) {
-              element.focus()
-            }
-
-            if (attr.name != "style" && !setAttrs.contains(attr.name)) {
-              if (element is HTMLInputElement) {
-                if (attr.name == "checkbox") {
-                  element.checked = false
-                } else if (attr.name == "value") {
-                  element.value = ""
-                } else if (attr.name == "class") {
-                  element.className = ""
-                }
-              } else {
-                if (Komponent.logReplaceEvent) {
-                  console.log("Clear attribute [${attr.name}]  on $element)")
-                }
-                element.removeAttribute(attr.name)
-              }
-            }
-          }
-        }
-      }
-    }
 
     currentPosition.nextElement()
 
