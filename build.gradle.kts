@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "nl.astraeus"
-version = "1.0.2"
+version = "1.0.4-SNAPSHOT"
 
 repositories {
   mavenCentral()
