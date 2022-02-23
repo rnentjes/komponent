@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package nl.astraeus.komp
 
 import kotlinx.browser.document
@@ -9,6 +11,7 @@ import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.Node
 import org.w3c.dom.asList
@@ -28,7 +31,8 @@ fun FlowOrMetaDataOrPhrasingContent.currentElement(): Element =
 
 private data class ElementIndex(
   val parent: Node,
-  var childIndex: Int
+  var childIndex: Int,
+  var setAttr: MutableSet<String> = mutableSetOf()
 )
 
 private fun ArrayList<ElementIndex>.currentParent(): Node {
@@ -49,6 +53,7 @@ private fun ArrayList<ElementIndex>.currentElement(): Node? {
 
 private fun ArrayList<ElementIndex>.nextElement() {
   this.lastOrNull()?.let {
+    it.setAttr.clear()
     it.childIndex++
   }
 }
@@ -72,14 +77,14 @@ private fun ArrayList<ElementIndex>.replace(new: Node) {
 private fun Node.asElement() = this as? HTMLElement
 
 class HtmlBuilder(
-  val komponent: Komponent?,
+  private val komponent: Komponent?,
   parent: Element,
   childIndex: Int = 0,
 ) : HtmlConsumer {
   private var currentPosition = arrayListOf<ElementIndex>()
   private var inDebug = false
   private var exceptionThrown = false
-  var currentNode: Node? = null
+  private var currentNode: Node? = null
   var root: Element? = null
 
   init {
@@ -122,18 +127,18 @@ class HtmlBuilder(
     }
   }
 
-  private fun logReplace(msg: String) {
+  private fun logReplace(msg: () -> String) {
     if (Komponent.logReplaceEvent && inDebug) {
-      console.log(msg)
+      console.log(msg.invoke())
     }
   }
 
   override fun onTagStart(tag: Tag) {
-    logReplace("onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition")
+    logReplace { "onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition" }
     currentNode = currentPosition.currentElement()
 
     if (currentNode == null) {
-      logReplace("onTagStart, currentNode1: $currentNode")
+      logReplace { "onTagStart, currentNode1: $currentNode" }
       currentNode = if (tag.namespace != null) {
         document.createElementNS(tag.namespace, tag.tagName)
       } else {
@@ -142,9 +147,18 @@ class HtmlBuilder(
 
       //logReplace"onTagStart, currentElement1.1: $currentNode")
       currentPosition.currentParent().appendChild(currentNode!!)
-    } else {
-      logReplace("onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}")
-      logReplace("onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}")
+    } else if (
+      Komponent.updateMode.isReplace ||
+      (
+          !currentNode?.asElement()?.tagName.equals(tag.tagName, true) ||
+              (
+                  tag.namespace != null &&
+                      !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
+                  )
+          )
+    ) {
+      logReplace { "onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}" }
+      logReplace { "onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}" }
 
       currentNode = if (tag.namespace != null) {
         document.createElementNS(tag.namespace, tag.tagName)
@@ -155,6 +169,8 @@ class HtmlBuilder(
       currentPosition.replace(currentNode!!)
     }
 
+    check(currentNode == currentPosition.currentElement())
+
     currentElement = currentNode as? Element ?: currentElement
 
     if (currentNode is Element) {
@@ -163,9 +179,14 @@ class HtmlBuilder(
         root = currentNode as Element
       }
 
+      if (Komponent.updateMode.isReplace) {
+        currentElement?.clearKompEvents()
+      }
+
       for (entry in tag.attributesEntries) {
-        val attributeName = entry.key.lowercase()
-        currentElement!!.setKompAttribute(attributeName, entry.value)
+        currentElement!!.setKompAttribute(entry.key, entry.value)
+        console.log("onTagStart - set attribute", entry.key)
+        currentPosition.lastOrNull()?.setAttr?.add(entry.key)
       }
 
       if (tag.namespace != null) {
@@ -190,19 +211,23 @@ class HtmlBuilder(
   }
 
   override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) {
-    logReplace("onTagAttributeChange, ${tag.tagName} [$attribute, $value]")
+    logReplace { "onTagAttributeChange, ${tag.tagName} [$attribute, $value]" }
 
     if (Komponent.enableAssertions) {
       checkTag(tag)
     }
 
-    val attributeName = attribute.lowercase()
-
-    currentElement?.setKompAttribute(attributeName, value)
+    currentElement?.setKompAttribute(attribute, value)
+    if (value == null || value.isEmpty()) {
+      currentPosition.lastOrNull()?.setAttr?.remove(attribute)
+    } else {
+      console.log("onTagAttributeChange - set attribute", attribute)
+      currentPosition.lastOrNull()?.setAttr?.add(attribute)
+    }
   }
 
   override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
-    logReplace("onTagEvent, ${tag.tagName} [$event, $value]")
+    logReplace { "onTagEvent, ${tag.tagName} [$event, $value]" }
 
     if (Komponent.enableAssertions) {
       checkTag(tag)
@@ -227,6 +252,48 @@ class HtmlBuilder(
     }
 
     currentPosition.pop()
+
+    currentNode = currentPosition.currentElement()
+    currentElement = currentNode as? Element ?: currentElement
+
+    if (currentElement != null) {
+      val setAttrs: Set<String> = currentPosition.lastOrNull()?.setAttr ?: setOf()
+
+      console.log("onTagEnd - set attr:", setAttrs.joinToString(","))
+
+      // remove attributes that where not set
+      val element = currentElement
+      if (element?.hasAttributes() == true) {
+        for (index in 0 until element.attributes.length) {
+          val attribute = element.attributes[index]
+          if (attribute?.name != null) {
+            val attr = attribute.name
+
+            if (
+              !setAttrs.contains(attr) &&
+              attr != "style"
+            ) {
+              console.log("remove attr", attr)
+              if (element is HTMLInputElement) {
+                when (attr) {
+                  "checked" -> {
+                    element.checked = false
+                  }
+                  "value" -> {
+                    element.value = ""
+                  }
+                  else -> {
+                    element.removeAttribute(attr)
+                  }
+                }
+              } else {
+                element.removeAttribute(attr)
+              }
+            }
+          }
+        }
+      }
+    }
 
     currentPosition.nextElement()
 
@@ -331,9 +398,10 @@ class HtmlBuilder(
     exceptionThrown = true
 
     if (exception !is KomponentException) {
+      console.log("onTagError", tag, exception)
       val position = mutableListOf<Element>()
       var ce = currentElement
-      while(ce != null) {
+      while (ce != null) {
         position.add(ce)
         ce = ce.parentElement
       }
@@ -351,6 +419,7 @@ class HtmlBuilder(
         }
         builder.append(" ")
       }
+
       throw KomponentException(
         komponent,
         currentElement,

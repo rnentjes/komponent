@@ -8,3 +8,4 @@ local.properties
 *.ipr
 *.iws
 kotlin-js-store
+.idea

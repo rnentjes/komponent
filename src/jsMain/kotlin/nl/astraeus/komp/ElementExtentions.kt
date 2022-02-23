@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package nl.astraeus.komp
 
 import org.w3c.dom.Element
@@ -40,6 +42,14 @@ fun Element.printTree(indent: Int = 0): String {
   }
   result.append(") {")
   result.append("\n")
+  for ((name, event) in getKompEvents()) {
+    result.append(indent.asSpaces())
+    result.append("on")
+    result.append(name)
+    result.append(" -> ")
+    result.append(event)
+    result.append("\n")
+  }
   for (index in 0 until childNodes.length) {
     childNodes[index]?.let {
       if (it is Element) {
@@ -57,37 +67,59 @@ fun Element.printTree(indent: Int = 0): String {
   return result.toString()
 }
 
-internal fun Element.setKompAttribute(name: String, value: String?) {
-//  val setAttrs: MutableSet<String> = getKompAttributes()
-//  setAttrs.add(name)
-  //getNewAttributes().add(name)
-
+internal fun Element.setKompAttribute(attributeName: String, value: String?) {
+  //val attributeName = name.lowercase()
   if (value == null || value.isBlank()) {
     if (this is HTMLInputElement) {
-      checked = false
+      when (attributeName) {
+        "checked" -> {
+          checked = false
+        }
+/*
+        "class" -> {
+          className = ""
+        }
+*/
+        "value" -> {
+          this.value = ""
+        }
+        else -> {
+          removeAttribute(attributeName)
+        }
+      }
     } else {
-      removeAttribute(name)
+      removeAttribute(attributeName)
     }
   } else {
     if (this is HTMLInputElement) {
-      when (name) {
+      when (attributeName) {
         "checked" -> {
           checked = "checked" == value
         }
+/*
         "class" -> {
           className = value
         }
+*/
         "value" -> {
           this.value = value
         }
         else -> {
-          setAttribute(name, value)
+          setAttribute(attributeName, value)
         }
       }
-    } else if (this.getAttribute(name) != value) {
-      setAttribute(name, value)
+    } else if (this.getAttribute(attributeName) != value) {
+      setAttribute(attributeName, value)
     }
   }
+}
+
+internal fun Element.clearKompEvents() {
+  val events = getKompEvents()
+  for ((name, event) in getKompEvents()) {
+    removeEventListener(name, event)
+  }
+  events.clear()
 }
 
 internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
@@ -98,6 +130,17 @@ internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
   }
 
   this.addEventListener(eventName, event)
+}
+
+internal fun Element.getKompEvents(): MutableMap<String, (Event) -> Unit> {
+  var result: MutableMap<String, (Event) -> Unit>? = this.asDynamic()["komp-events"] as MutableMap<String, (Event) -> Unit>?
+
+  if (result == null) {
+    result = mutableMapOf()
+    this.asDynamic()["komp-events"] = result
+  }
+
+  return result
 }
 
 internal fun Element.findElementIndex(): Int {

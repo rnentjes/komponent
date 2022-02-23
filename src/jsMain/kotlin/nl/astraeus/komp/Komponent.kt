@@ -16,6 +16,15 @@ enum class UnsafeMode {
   UNSAFE_SVG_ONLY
 }
 
+enum class UpdateMode {
+  REPLACE,
+  UPDATE,
+  ;
+
+  val isReplace: Boolean get() { return this == REPLACE }
+  val isUpdate: Boolean get() { return this == UPDATE }
+}
+
 var Element.memoizeHash: String?
   get() {
     return getAttribute("memoize-hash")
@@ -177,6 +186,7 @@ abstract class Komponent {
     var logRenderEvent = false
     var logReplaceEvent = false
     var enableAssertions = false
+    var updateMode = UpdateMode.REPLACE
     var unsafeMode = UnsafeMode.UNSAFE_DISABLED
 
     fun create(parent: HTMLElement, component: Komponent) {

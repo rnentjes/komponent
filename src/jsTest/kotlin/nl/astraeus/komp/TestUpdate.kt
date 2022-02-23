@@ -2,6 +2,7 @@ package nl.astraeus.komp
 
 import kotlinx.browser.document
 import kotlinx.html.InputType
+import kotlinx.html.classes
 import kotlinx.html.div
 import kotlinx.html.i
 import kotlinx.html.id
@@ -37,6 +38,7 @@ class Child1 : Komponent() {
 class Child2 : Komponent() {
   override fun HtmlBuilder.render() {
     div {
+      id ="1234"
       +"Child 2"
     }
   }
@@ -209,7 +211,8 @@ class TestUpdate {
   fun testCreate() {
     var elemTest: Element? = null
     val element = HtmlBuilder.create {
-      div("div_class") {
+      div(classes = "div_class") {
+        classes = classes + "bla'"
         id = "123"
         +"Test"
 
