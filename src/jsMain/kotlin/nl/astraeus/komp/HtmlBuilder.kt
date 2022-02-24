@@ -51,6 +51,14 @@ private fun ArrayList<ElementIndex>.currentElement(): Node? {
   return null
 }
 
+private fun ArrayList<ElementIndex>.currentPosition(): ElementIndex? {
+  return if (this.size < 2) {
+    null
+  } else {
+    this[this.size-2]
+  }
+}
+
 private fun ArrayList<ElementIndex>.nextElement() {
   this.lastOrNull()?.let {
     it.setAttr.clear()
@@ -79,7 +87,7 @@ private fun Node.asElement() = this as? HTMLElement
 class HtmlBuilder(
   private val komponent: Komponent?,
   parent: Element,
-  childIndex: Int = 0,
+  childIndex: Int = 0
 ) : HtmlConsumer {
   private var currentPosition = arrayListOf<ElementIndex>()
   private var inDebug = false
@@ -135,6 +143,7 @@ class HtmlBuilder(
 
   override fun onTagStart(tag: Tag) {
     logReplace { "onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition" }
+
     currentNode = currentPosition.currentElement()
 
     if (currentNode == null) {
@@ -169,8 +178,6 @@ class HtmlBuilder(
       currentPosition.replace(currentNode!!)
     }
 
-    check(currentNode == currentPosition.currentElement())
-
     currentElement = currentNode as? Element ?: currentElement
 
     if (currentNode is Element) {
@@ -179,17 +186,17 @@ class HtmlBuilder(
         root = currentNode as Element
       }
 
-      if (Komponent.updateMode.isReplace) {
+      if (Komponent.updateMode.isUpdate) {
         currentElement?.clearKompEvents()
       }
 
+      currentPosition.lastOrNull()?.setAttr?.clear()
       for (entry in tag.attributesEntries) {
         currentElement!!.setKompAttribute(entry.key, entry.value)
-        console.log("onTagStart - set attribute", entry.key)
         currentPosition.lastOrNull()?.setAttr?.add(entry.key)
       }
 
-      if (tag.namespace != null) {
+      if (tag.namespace != null && Komponent.updateMode.isReplace) {
         //logReplace"onTagStart, same node type")
 
         (currentNode as? Element)?.innerHTML = ""
@@ -219,10 +226,9 @@ class HtmlBuilder(
 
     currentElement?.setKompAttribute(attribute, value)
     if (value == null || value.isEmpty()) {
-      currentPosition.lastOrNull()?.setAttr?.remove(attribute)
+      currentPosition.currentPosition()?.setAttr?.remove(attribute)
     } else {
-      console.log("onTagAttributeChange - set attribute", attribute)
-      currentPosition.lastOrNull()?.setAttr?.add(attribute)
+      currentPosition.currentPosition()?.setAttr?.add(attribute)
     }
   }
 
@@ -251,15 +257,8 @@ class HtmlBuilder(
       checkTag(tag)
     }
 
-    currentPosition.pop()
-
-    currentNode = currentPosition.currentElement()
-    currentElement = currentNode as? Element ?: currentElement
-
     if (currentElement != null) {
-      val setAttrs: Set<String> = currentPosition.lastOrNull()?.setAttr ?: setOf()
-
-      console.log("onTagEnd - set attr:", setAttrs.joinToString(","))
+      val setAttrs: Set<String> = currentPosition.currentPosition()?.setAttr ?: setOf()
 
       // remove attributes that where not set
       val element = currentElement
@@ -273,7 +272,6 @@ class HtmlBuilder(
               !setAttrs.contains(attr) &&
               attr != "style"
             ) {
-              console.log("remove attr", attr)
               if (element is HTMLInputElement) {
                 when (attr) {
                   "checked" -> {
@@ -294,6 +292,11 @@ class HtmlBuilder(
         }
       }
     }
+
+    currentPosition.pop()
+
+    currentNode = currentPosition.currentElement()
+    currentElement = currentNode as? Element ?: currentElement
 
     currentPosition.nextElement()
 
@@ -398,7 +401,6 @@ class HtmlBuilder(
     exceptionThrown = true
 
     if (exception !is KomponentException) {
-      console.log("onTagError", tag, exception)
       val position = mutableListOf<Element>()
       var ce = currentElement
       while (ce != null) {
@@ -441,7 +443,7 @@ class HtmlBuilder(
   companion object {
     fun create(content: HtmlBuilder.() -> Unit): Element {
       val container = document.createElement("div") as HTMLElement
-      val consumer = HtmlBuilder(null, container, 0)
+      val consumer = HtmlBuilder(null, container)
       content.invoke(consumer)
       return consumer.root ?: error("No root element found after render!")
     }

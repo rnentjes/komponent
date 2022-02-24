@@ -146,7 +146,6 @@ abstract class Komponent {
       }
     }
     val builder = HtmlBuilder(this, parent, childIndex)
-    builder.root = null
 
     try {
       currentKomponent = this
@@ -186,7 +185,7 @@ abstract class Komponent {
     var logRenderEvent = false
     var logReplaceEvent = false
     var enableAssertions = false
-    var updateMode = UpdateMode.REPLACE
+    var updateMode = UpdateMode.UPDATE
     var unsafeMode = UnsafeMode.UNSAFE_DISABLED
 
     fun create(parent: HTMLElement, component: Komponent) {

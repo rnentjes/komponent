@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package nl.astraeus.komp
 
 import org.w3c.dom.Element
@@ -127,6 +125,10 @@ internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
     name.substring(2)
   } else {
     name
+  }
+
+  if (Komponent.updateMode.isUpdate) {
+    getKompEvents()[eventName] = event
   }
 
   this.addEventListener(eventName, event)
