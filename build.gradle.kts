@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "nl.astraeus"
-version = "1.0.4-SNAPSHOT"
+version = "1.0.4"
 
 repositories {
   mavenCentral()
@@ -68,7 +68,6 @@ val javadocJar by tasks.registering(Jar::class) {
 publishing {
   repositories {
     mavenLocal()
-/*
     maven {
       name = "releases"
       // change to point to your repo, e.g. http://my.org/repo
@@ -101,7 +100,6 @@ publishing {
         password = ossrhPassword
       }
     }
-*/
   }
 
   // Configure all publications
@@ -134,9 +132,7 @@ publishing {
     }
   }
 }
-/*
 
 signing {
   sign(publishing.publications)
 }
-*/
