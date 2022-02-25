@@ -1,12 +1,12 @@
 plugins {
-  kotlin("multiplatform") version "1.6.20-M1"
+  kotlin("multiplatform") version "1.6.10"
   `maven-publish`
   signing
   id("org.jetbrains.dokka") version "1.5.31"
 }
 
 group = "nl.astraeus"
-version = "1.0.5-SNAPSHOT"
+version = "1.0.5"
 
 repositories {
   mavenCentral()
