@@ -188,6 +188,7 @@ class HtmlBuilder(
 
       if (Komponent.updateMode.isUpdate) {
         currentElement?.clearKompEvents()
+        (currentElement as? HTMLInputElement)?.checked = false
       }
 
       currentPosition.lastOrNull()?.setAttr?.clear()
@@ -272,21 +273,7 @@ class HtmlBuilder(
               !setAttrs.contains(attr) &&
               attr != "style"
             ) {
-              if (element is HTMLInputElement) {
-                when (attr) {
-                  "checked" -> {
-                    element.checked = false
-                  }
-                  "value" -> {
-                    element.value = ""
-                  }
-                  else -> {
-                    element.removeAttribute(attr)
-                  }
-                }
-              } else {
-                element.removeAttribute(attr)
-              }
+              element.setKompAttribute(attr, null)
             }
           }
         }
