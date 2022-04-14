@@ -6,9 +6,9 @@ import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 
-private var currentKomponent: Komponent? = null
+private val currentKomponents: MutableList<Komponent> = mutableListOf()
 fun FlowOrMetaDataOrPhrasingContent.currentKomponent(): Komponent =
-  currentKomponent ?: error("No current komponent defined! Only call from render code!")
+  currentKomponents.lastOrNull() ?: error("No current komponent defined! Only call from render code!")
 
 enum class UnsafeMode {
   UNSAFE_ALLOWED,
@@ -52,12 +52,12 @@ abstract class Komponent {
     )
 
     try {
-      currentKomponent = this
+      currentKomponents.add(this)
       builder.render()
     } catch(e: KomponentException) {
       errorHandler(e)
     } finally {
-      currentKomponent = null
+      currentKomponents.removeLast()
     }
 
     element = builder.root
@@ -148,12 +148,12 @@ abstract class Komponent {
     val builder = HtmlBuilder(this, parent, childIndex)
 
     try {
-      currentKomponent = this
+      currentKomponents.add(this)
       builder.render()
     } catch(e: KomponentException) {
       errorHandler(e)
     } finally {
-      currentKomponent = null
+      currentKomponents.removeLast()
     }
 
     element = builder.root
