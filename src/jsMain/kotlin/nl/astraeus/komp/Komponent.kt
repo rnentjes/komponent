@@ -6,23 +6,15 @@ import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 
-private val currentKomponents: MutableList<Komponent> = mutableListOf()
+private var currentKomponent: Komponent? = null
+
 fun FlowOrMetaDataOrPhrasingContent.currentKomponent(): Komponent =
-  currentKomponents.lastOrNull() ?: error("No current komponent defined! Only call from render code!")
+  currentKomponent ?: error("No current komponent defined! Only call from render code!")
 
 enum class UnsafeMode {
   UNSAFE_ALLOWED,
   UNSAFE_DISABLED,
   UNSAFE_SVG_ONLY
-}
-
-enum class UpdateMode {
-  REPLACE,
-  UPDATE,
-  ;
-
-  val isReplace: Boolean get() { return this == REPLACE }
-  val isUpdate: Boolean get() { return this == UPDATE }
 }
 
 var Element.memoizeHash: String?
@@ -52,12 +44,12 @@ abstract class Komponent {
     )
 
     try {
-      currentKomponents.add(this)
+      currentKomponent = this
       builder.render()
     } catch(e: KomponentException) {
       errorHandler(e)
     } finally {
-      currentKomponents.removeLast()
+      currentKomponent = null
     }
 
     element = builder.root
@@ -148,12 +140,12 @@ abstract class Komponent {
     val builder = HtmlBuilder(this, parent, childIndex)
 
     try {
-      currentKomponents.add(this)
+      currentKomponent = this
       builder.render()
     } catch(e: KomponentException) {
       errorHandler(e)
     } finally {
-      currentKomponents.removeLast()
+      currentKomponent = null
     }
 
     element = builder.root
@@ -185,7 +177,6 @@ abstract class Komponent {
     var logRenderEvent = false
     var logReplaceEvent = false
     var enableAssertions = false
-    var updateMode = UpdateMode.UPDATE
     var unsafeMode = UnsafeMode.UNSAFE_DISABLED
 
     fun create(parent: HTMLElement, component: Komponent) {
