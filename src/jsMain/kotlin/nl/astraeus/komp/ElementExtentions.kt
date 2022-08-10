@@ -127,9 +127,7 @@ internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
     name
   }
 
-  if (Komponent.updateMode.isUpdate) {
-    getKompEvents()[eventName] = event
-  }
+  getKompEvents()[eventName] = event
 
   this.addEventListener(eventName, event)
 }

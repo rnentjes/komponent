@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package nl.astraeus.komp
 
 import kotlinx.browser.document
@@ -55,7 +53,7 @@ private fun ArrayList<ElementIndex>.currentPosition(): ElementIndex? {
   return if (this.size < 2) {
     null
   } else {
-    this[this.size-2]
+    this[this.size - 2]
   }
 }
 
@@ -157,13 +155,10 @@ class HtmlBuilder(
       //logReplace"onTagStart, currentElement1.1: $currentNode")
       currentPosition.currentParent().appendChild(currentNode!!)
     } else if (
-      Komponent.updateMode.isReplace ||
+      !currentNode?.asElement()?.tagName.equals(tag.tagName, true) ||
       (
-          !currentNode?.asElement()?.tagName.equals(tag.tagName, true) ||
-              (
-                  tag.namespace != null &&
-                      !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
-                  )
+          tag.namespace != null &&
+              !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
           )
     ) {
       logReplace { "onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}" }
@@ -186,21 +181,15 @@ class HtmlBuilder(
         root = currentNode as Element
       }
 
-      if (Komponent.updateMode.isUpdate) {
-        currentElement?.clearKompEvents()
-        (currentElement as? HTMLInputElement)?.checked = false
-      }
+      currentElement?.clearKompEvents()
+      (currentElement as? HTMLInputElement)?.checked = false
 
       currentPosition.lastOrNull()?.setAttr?.clear()
+
+      // if currentElement = checkbox make sure it's cleared
       for (entry in tag.attributesEntries) {
         currentElement!!.setKompAttribute(entry.key, entry.value)
         currentPosition.lastOrNull()?.setAttr?.add(entry.key)
-      }
-
-      if (tag.namespace != null && Komponent.updateMode.isReplace) {
-        //logReplace"onTagStart, same node type")
-
-        (currentNode as? Element)?.innerHTML = ""
       }
     }
 
