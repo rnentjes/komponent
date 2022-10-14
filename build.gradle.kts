@@ -28,7 +28,7 @@ kotlin {
       dependencies {
         implementation(kotlin("stdlib-common"))
 
-        api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.3")
+        api("org.jetbrains.kotlinx:kotlinx-html:0.7.5")
       }
     }
     val jsMain by getting {
