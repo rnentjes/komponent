@@ -56,7 +56,7 @@ fun greet() = "world"
 
 Replace the code in the file with the following for a simple click app:
 
-```koltin
+```kotlin
 import kotlinx.browser.document
 import kotlinx.html.button
 import kotlinx.html.div
@@ -144,4 +144,4 @@ the data changes, that would look like this:
 
 In that case you can remove the requestUpdate call from the onClickFunction.
 
-You can find a working repository of this example here: [example]()
+You can find a working repository of this example here: [kotlin-komponent-start](https://github.com/rnentjes/kotlin-komponent-start)

@@ -15,8 +15,8 @@ This way there will not be double updates of the same komponent.
 The render call will be invoked and every html builder function (div, span etc.) will call the 
 different HtmlBuilder functions like onTagStart, onTagAttributeChange etc.
 
-In these functions the HtmlBuilder will compare the dom against the call being made and it will update the DOM
-if needed.
+In these functions the HtmlBuilder will compare the dom against the call being made, and it will update the DOM
+as needed.
 
 
 
