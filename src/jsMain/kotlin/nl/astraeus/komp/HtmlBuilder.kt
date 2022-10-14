@@ -74,7 +74,10 @@ private fun ArrayList<ElementIndex>.push(element: Node) {
 
 private fun ArrayList<ElementIndex>.replace(new: Node) {
   if (this.currentElement() != null) {
-    this.currentElement()?.parentElement?.replaceChild(new, this.currentElement()!!)
+    this.currentElement()?.parentElement?.replaceChild(
+      new,
+      this.currentElement()!!
+    )
   } else {
     this.last().parent.appendChild(new)
   }
@@ -104,7 +107,9 @@ class HtmlBuilder(
     ) {
       currentPosition.replace(komponent.element!!)
       if (Komponent.logRenderEvent) {
-        console.log("Skipped include $komponent, memoize hasn't changed")
+        console.log(
+          "Skipped include $komponent, memoize hasn't changed"
+        )
       }
     } else {
       komponent.create(
@@ -140,7 +145,9 @@ class HtmlBuilder(
   }
 
   override fun onTagStart(tag: Tag) {
-    logReplace { "onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition" }
+    logReplace {
+      "onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition"
+    }
 
     currentNode = currentPosition.currentElement()
 
@@ -161,8 +168,12 @@ class HtmlBuilder(
               !currentNode?.asElement()?.namespaceURI.equals(tag.namespace, true)
           )
     ) {
-      logReplace { "onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}" }
-      logReplace { "onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}" }
+      logReplace {
+        "onTagStart, currentElement, namespace: ${currentNode?.asElement()?.namespaceURI} -> ${tag.namespace}"
+      }
+      logReplace {
+        "onTagStart, currentElement, replace: ${currentNode?.asElement()?.tagName} -> ${tag.tagName}"
+      }
 
       currentNode = if (tag.namespace != null) {
         document.createElementNS(tag.namespace, tag.tagName)
@@ -207,7 +218,11 @@ class HtmlBuilder(
     }
   }
 
-  override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) {
+  override fun onTagAttributeChange(
+    tag: Tag,
+    attribute: String,
+    value: String?
+  ) {
     logReplace { "onTagAttributeChange, ${tag.tagName} [$attribute, $value]" }
 
     if (Komponent.enableAssertions) {
@@ -222,14 +237,18 @@ class HtmlBuilder(
     }
   }
 
-  override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
+  override fun onTagEvent(
+    tag: Tag,
+    event: String,
+    value: (Event) -> Unit
+  ) {
     logReplace { "onTagEvent, ${tag.tagName} [$event, $value]" }
 
     if (Komponent.enableAssertions) {
       checkTag(tag)
     }
 
-    currentElement?.setKompEvent(event.lowercase(), value)
+    currentElement?.setKompEvent(event.toLowerCase(), value)
   }
 
   override fun onTagEnd(tag: Tag) {
@@ -347,7 +366,10 @@ class HtmlBuilder(
       //logReplace"onTagContentUnsafe, namespace: [$namespace]")
 
       if (Komponent.unsafeMode == UnsafeMode.UNSAFE_ALLOWED ||
-        (Komponent.unsafeMode == UnsafeMode.UNSAFE_SVG_ONLY && namespace == "http://www.w3.org/2000/svg")
+            (
+              Komponent.unsafeMode == UnsafeMode.UNSAFE_SVG_ONLY &&
+              namespace == "http://www.w3.org/2000/svg"
+            )
       ) {
         if (currentElement?.innerHTML != textContent) {
           currentElement?.innerHTML += textContent
@@ -413,7 +435,9 @@ class HtmlBuilder(
 
   override fun finalize(): Element {
     //logReplace"finalize, currentPosition: $currentPosition")
-    return root ?: throw IllegalStateException("We can't finalize as there was no tags")
+    return root ?: throw IllegalStateException(
+      "We can't finalize as there was no tags"
+    )
   }
 
   companion object {
