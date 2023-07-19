@@ -14,8 +14,8 @@ interface Delegate<T> {
     property: KProperty<*>,
     value: T
   )
-}
 
+}
 
 open class StateDelegate<T>(
   val komponent: Komponent,
@@ -51,6 +51,6 @@ open class StateDelegate<T>(
 inline fun <reified T> Komponent.state(
   initialValue: T
 ): Delegate<T> = StateDelegate(
-      this,
-      initialValue
-    )
+  this,
+  initialValue
+)

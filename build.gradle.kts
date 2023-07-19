@@ -1,19 +1,19 @@
 plugins {
-  kotlin("multiplatform") version "1.7.20"
+  kotlin("multiplatform") version "1.9.0"
   `maven-publish`
   signing
   id("org.jetbrains.dokka") version "1.5.31"
 }
 
 group = "nl.astraeus"
-version = "1.0.8-SNAPSHOT"
+version = "1.1.1"
 
 repositories {
   mavenCentral()
 }
 
 kotlin {
-  js(BOTH) {
+  js(IR) {
     browser {
       testTask {
         useKarma {
@@ -26,14 +26,11 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(kotlin("stdlib-common"))
-
-        api("org.jetbrains.kotlinx:kotlinx-html:0.7.5")
+        api("org.jetbrains.kotlinx:kotlinx-html:0.9.1")
       }
     }
     val jsMain by getting {
       dependencies {
-        implementation(kotlin("stdlib-js"))
       }
     }
     val jsTest by getting {
@@ -71,25 +68,25 @@ publishing {
     maven {
       name = "releases"
       // change to point to your repo, e.g. http://my.org/repo
-      setUrl("https://nexus.astraeus.nl/nexus/content/repositories/releases")
+      setUrl("https://reposilite.astraeus.nl/releases")
       credentials {
-        val nexusUsername: String? by project
-        val nexusPassword: String? by project
+        val reposiliteUsername: String? by project
+        val reposilitePassword: String? by project
 
-        username = nexusUsername
-        password = nexusPassword
+        username = reposiliteUsername
+        password = reposilitePassword
       }
     }
     maven {
       name = "snapshots"
       // change to point to your repo, e.g. http://my.org/repo
-      setUrl("https://nexus.astraeus.nl/nexus/content/repositories/snapshots")
+      setUrl("https://reposilite.astraeus.nl/snapshots")
       credentials {
-        val nexusUsername: String? by project
-        val nexusPassword: String? by project
+        val reposiliteUsername: String? by project
+        val reposilitePassword: String? by project
 
-        username = nexusUsername
-        password = nexusPassword
+        username = reposiliteUsername
+        password = reposilitePassword
       }
     }
     maven {
@@ -136,3 +133,20 @@ publishing {
 signing {
   sign(publishing.publications)
 }
+
+tasks.named<Task>("signJsPublication") {
+  dependsOn(tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal"))
+}
+
+tasks.named<Task>("publishJsPublicationToReleasesRepository") {
+  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
+}
+
+tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocalRepository") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
+
+tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
+

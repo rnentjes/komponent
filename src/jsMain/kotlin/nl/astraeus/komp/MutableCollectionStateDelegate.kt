@@ -31,7 +31,7 @@ class MutableCollectionStateDelegate<T>(
   }
 
   // todo: return iterator wrapper to update at changes?
-  // override fun iterator(): MutableIterator<T> = collection.iterator()
+  //override fun iterator(): MutableIterator<T> = collection.iterator()
 
   override fun remove(element: T): Boolean {
     komponent.requestUpdate()
