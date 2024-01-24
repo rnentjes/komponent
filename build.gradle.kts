@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "nl.astraeus"
-version = "1.2.1"
+version = "1.2.2-SNAPSHOT"
 
 repositories {
   mavenCentral()
@@ -25,6 +25,7 @@ kotlin {
       }
     }
   }
+  /*
   @OptIn(ExperimentalWasmDsl::class)
   wasmJs {
     //moduleName = project.name
@@ -46,6 +47,7 @@ kotlin {
       }
     }
   }
+  */
 
   sourceSets {
     val commonMain by getting {
@@ -171,6 +173,11 @@ tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
 
+/*
+tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
 tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
   dependsOn(tasks.named<Task>("signWasmJsPublication"))
 }
@@ -182,3 +189,4 @@ tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
 tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
+*/
