@@ -8,6 +8,6 @@ See the komp-todo repository for a basic example here: [komp-todo](https://githu
 
 For a more complete example take a look at the simple-password-manager repository: [simple-password-manager](https://github.com/rnentjes/simple-password-manager)
 
-Available on maven central: "nl.astraeus:kotlin-komponent-js:1.0.0"
+Available on maven central: "nl.astraeus:kotlin-komponent-js:1.2.1"
 
 Some getting started documentation can be found [here](docs/getting-started.md)
