@@ -7,7 +7,6 @@ import kotlinx.html.FlowOrMetaDataOrPhrasingContent
 import kotlinx.html.Tag
 import kotlinx.html.TagConsumer
 import kotlinx.html.Unsafe
-import org.w3c.dom.events.Event
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
@@ -27,62 +26,6 @@ interface HtmlConsumer : TagConsumer<Element> {
 fun FlowOrMetaDataOrPhrasingContent.currentElement(): Element =
   currentElement ?: error("No current element defined!")
 
-private data class ElementIndex(
-  val parent: Node,
-  var childIndex: Int,
-  var setAttr: MutableSet<String> = mutableSetOf()
-)
-
-private fun ArrayList<ElementIndex>.currentParent(): Node {
-  this.lastOrNull()?.let {
-    return it.parent
-  }
-
-  throw IllegalStateException("currentParent should never be null!")
-}
-
-private fun ArrayList<ElementIndex>.currentElement(): Node? {
-  this.lastOrNull()?.let {
-    return it.parent.childNodes[it.childIndex]
-  }
-
-  return null
-}
-
-private fun ArrayList<ElementIndex>.currentPosition(): ElementIndex? {
-  return if (this.size < 2) {
-    null
-  } else {
-    this[this.size - 2]
-  }
-}
-
-private fun ArrayList<ElementIndex>.nextElement() {
-  this.lastOrNull()?.let {
-    it.setAttr.clear()
-    it.childIndex++
-  }
-}
-
-private fun ArrayList<ElementIndex>.pop() {
-  this.removeLast()
-}
-
-private fun ArrayList<ElementIndex>.push(element: Node) {
-  this.add(ElementIndex(element, 0))
-}
-
-private fun ArrayList<ElementIndex>.replace(new: Node) {
-  if (this.currentElement() != null) {
-    this.currentElement()?.parentElement?.replaceChild(
-      new,
-      this.currentElement()!!
-    )
-  } else {
-    this.last().parent.appendChild(new)
-  }
-}
-
 private fun Node.asElement() = this as? HTMLElement
 
 class HtmlBuilder(
@@ -94,6 +37,7 @@ class HtmlBuilder(
   private var inDebug = false
   private var exceptionThrown = false
   private var currentNode: Node? = null
+  private var firstTag: Boolean = true
   var root: Element? = null
 
   init {
@@ -112,6 +56,13 @@ class HtmlBuilder(
         )
       }
     } else {
+      // current element should become parent
+/*
+      val ce = komponent.element
+      if (ce != null) {
+        append(ce as Element)
+      }
+*/
       komponent.create(
         currentPosition.last().parent as Element,
         currentPosition.last().childIndex
@@ -146,7 +97,7 @@ class HtmlBuilder(
 
   override fun onTagStart(tag: Tag) {
     logReplace {
-      "onTagStart, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition"
+      "onTagStart, [${tag.tagName}, ${tag.namespace ?: ""}], currentPosition: $currentPosition"
     }
 
     currentNode = currentPosition.currentElement()
@@ -159,7 +110,7 @@ class HtmlBuilder(
         document.createElement(tag.tagName)
       }
 
-      //logReplace"onTagStart, currentElement1.1: $currentNode")
+      logReplace { "onTagStart, currentElement1.1: $currentNode" }
       currentPosition.currentParent().appendChild(currentNode!!)
     } else if (
       !currentNode?.asElement()?.tagName.equals(tag.tagName, true) ||
@@ -187,17 +138,18 @@ class HtmlBuilder(
     currentElement = currentNode as? Element ?: currentElement
 
     if (currentNode is Element) {
-      if (root == null) {
-        //logReplace"Setting root: $currentNode")
+      if (firstTag) {
+        logReplace { "Setting root: $currentNode" }
         root = currentNode as Element
+        firstTag = false
       }
 
       currentElement?.clearKompEvents()
+
+      // if currentElement = checkbox make sure it's cleared
       (currentElement as? HTMLInputElement)?.checked = false
 
       currentPosition.lastOrNull()?.setAttr?.clear()
-
-      // if currentElement = checkbox make sure it's cleared
       for (entry in tag.attributesEntries) {
         currentElement!!.setKompAttribute(entry.key, entry.value)
         currentPosition.lastOrNull()?.setAttr?.add(entry.key)
@@ -207,14 +159,14 @@ class HtmlBuilder(
     currentPosition.push(currentNode!!)
   }
 
-  private fun checkTag(tag: Tag) {
+  private fun checkTag(source: String, tag: Tag) {
     check(currentElement != null) {
-      js("debugger")
-      "No current tag"
+      js("debugger;")
+      "No current tag ($source)"
     }
     check(currentElement?.tagName.equals(tag.tagName, ignoreCase = true)) {
-      js("debugger")
-      "Wrong current tag"
+      js("debugger;")
+      "Wrong current tag ($source), got: ${tag.tagName} expected ${currentElement?.tagName}"
     }
   }
 
@@ -226,7 +178,7 @@ class HtmlBuilder(
     logReplace { "onTagAttributeChange, ${tag.tagName} [$attribute, $value]" }
 
     if (Komponent.enableAssertions) {
-      checkTag(tag)
+      checkTag("onTagAttributeChange", tag)
     }
 
     currentElement?.setKompAttribute(attribute, value)
@@ -245,13 +197,17 @@ class HtmlBuilder(
     logReplace { "onTagEvent, ${tag.tagName} [$event, $value]" }
 
     if (Komponent.enableAssertions) {
-      checkTag(tag)
+      checkTag("onTagEvent", tag)
     }
 
     currentElement?.setKompEvent(event.lowercase(), value.asDynamic())
   }
 
   override fun onTagEnd(tag: Tag) {
+    logReplace {
+      "onTagEnd, [${tag.tagName}, ${tag.namespace}], currentPosition: $currentPosition"
+    }
+
     if (exceptionThrown) {
       return
     }
@@ -263,7 +219,7 @@ class HtmlBuilder(
     }
 
     if (Komponent.enableAssertions) {
-      checkTag(tag)
+      checkTag("onTagEnd", tag)
     }
 
     if (currentElement != null) {

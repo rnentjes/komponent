@@ -111,8 +111,25 @@ abstract class Komponent {
    *
    * HTMLBuilder.render() is called 1st time the component is rendered, after that this
    * method will be called
+   *
+   * @deprecated
    */
-  open fun update() {
+  @Deprecated(
+    "Deprecated to avoid confusing with requestUpdate, use renderUpdate instead",
+    ReplaceWith("renderUpdate"),
+    level = DeprecationLevel.WARNING
+  )
+  protected fun update() {
+    refresh()
+  }
+
+  /**
+   * This function can be overwritten if you know how to update the Komponent yourself
+   *
+   * HTMLBuilder.render() is called 1st time the component is rendered, after that this
+   * method will be called
+   */
+  protected fun renderUpdate() {
     refresh()
   }
 
@@ -228,7 +245,7 @@ abstract class Komponent {
 
               if (next.memoizeChanged()) {
                 next.onBeforeUpdate()
-                next.update()
+                next.renderUpdate()
                 next.updateMemoizeHash()
                 next.onAfterUpdate()
               } else if (logRenderEvent) {

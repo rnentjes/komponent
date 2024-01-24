@@ -1,6 +1,7 @@
 package nl.astraeus.komp
 
 import kotlinx.browser.document
+import kotlinx.html.DIV
 import kotlinx.html.InputType
 import kotlinx.html.classes
 import kotlinx.html.div
@@ -125,7 +126,7 @@ class IncludeKomponent(
 }
 
 class ReplaceKomponent : Komponent() {
-  val includeKomponent = IncludeKomponent()
+  val includeKomponent = IncludeKomponent("Other text")
   var includeSpan = true
 
   override fun generateMemoizeHash(): Int = includeSpan.hashCode() * 7 + includeKomponent.generateMemoizeHash()
@@ -136,24 +137,20 @@ class ReplaceKomponent : Komponent() {
 
       div {
         if (includeSpan) {
-          span {
-            i("fas fa-eye") {
-              +"span1"
-            }
-          }
-          span {
-            i("fas fa-eye") {
-              +"span2"
-            }
-          }
-          span {
-            i("fas fa-eye") {
-              +"span3"
-            }
+          for (index in 0 ..< 3) {
+            extracted(index)
           }
         }
 
         include(includeKomponent)
+      }
+    }
+  }
+
+  private fun HtmlBuilder.extracted(index: Int) {
+    span {
+      i("fas fa-eye") {
+        + ("span" + (index+1))
       }
     }
   }

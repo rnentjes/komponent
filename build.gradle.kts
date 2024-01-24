@@ -1,12 +1,15 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
-  kotlin("multiplatform") version "1.9.0"
-  `maven-publish`
-  signing
+  kotlin("multiplatform") version "1.9.22"
+  id("maven-publish")
+  id("signing")
   id("org.jetbrains.dokka") version "1.5.31"
 }
 
 group = "nl.astraeus"
-version = "1.1.1"
+version = "1.2.1"
 
 repositories {
   mavenCentral()
@@ -22,17 +25,35 @@ kotlin {
       }
     }
   }
+  @OptIn(ExperimentalWasmDsl::class)
+  wasmJs {
+    //moduleName = project.name
+    browser()
+
+    mavenPublication {
+      groupId = group as String
+      pom { name = "${project.name}-wasm-js" }
+    }
+  }
+
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  applyDefaultHierarchyTemplate {
+    common {
+      group("jsCommon") {
+        withJs()
+        // TODO: switch to `withWasmJs()` after upgrade to Kotlin 2.0
+        withWasm()
+      }
+    }
+  }
 
   sourceSets {
     val commonMain by getting {
       dependencies {
-        api("org.jetbrains.kotlinx:kotlinx-html:0.9.1")
+        api("org.jetbrains.kotlinx:kotlinx-html:0.11.0")
       }
     }
-    val jsMain by getting {
-      dependencies {
-      }
-    }
+    val jsMain by getting
     val jsTest by getting {
       dependencies {
         implementation(kotlin("test-js"))
@@ -150,3 +171,14 @@ tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
 
+tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
+  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
