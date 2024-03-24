@@ -1,15 +1,12 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
 plugins {
-  kotlin("multiplatform") version "1.9.22"
+  kotlin("multiplatform") version "1.9.23"
   id("maven-publish")
   id("signing")
   id("org.jetbrains.dokka") version "1.5.31"
 }
 
 group = "nl.astraeus"
-version = "1.2.2-SNAPSHOT"
+version = "1.2.2"
 
 repositories {
   mavenCentral()
@@ -172,21 +169,3 @@ tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocalRepository")
 tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
-
-/*
-tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
-  dependsOn(tasks.named<Task>("signWasmJsPublication"))
-}
-
-tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
-  dependsOn(tasks.named<Task>("signWasmJsPublication"))
-}
-
-tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
-  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
-}
-
-tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
-  dependsOn(tasks.named<Task>("signJsPublication"))
-}
-*/

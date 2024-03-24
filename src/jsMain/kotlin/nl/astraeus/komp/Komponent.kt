@@ -129,7 +129,7 @@ abstract class Komponent {
    * HTMLBuilder.render() is called 1st time the component is rendered, after that this
    * method will be called
    */
-  protected fun renderUpdate() {
+  open fun renderUpdate() {
     refresh()
   }
 
