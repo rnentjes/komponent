@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "nl.astraeus"
-version = "1.2.2"
+version = "1.2.3-SNAPSHOT"
 
 repositories {
   mavenCentral()
@@ -167,5 +167,9 @@ tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocalRepository")
 }
 
 tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
+
+tasks.named<Task>("publishKotlinMultiplatformPublicationToSonatypeRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
