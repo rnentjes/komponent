@@ -1,5 +1,8 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
-  kotlin("multiplatform") version "1.9.23"
+  kotlin("multiplatform") version "2.0.0"
   id("maven-publish")
   id("signing")
   id("org.jetbrains.dokka") version "1.5.31"
@@ -13,7 +16,7 @@ repositories {
 }
 
 kotlin {
-  js(IR) {
+  js {
     browser {
       testTask {
         useKarma {
@@ -22,8 +25,7 @@ kotlin {
       }
     }
   }
-  /*
-  @OptIn(ExperimentalWasmDsl::class)
+/*  @OptIn(ExperimentalWasmDsl::class)
   wasmJs {
     //moduleName = project.name
     browser()
@@ -32,8 +34,9 @@ kotlin {
       groupId = group as String
       pom { name = "${project.name}-wasm-js" }
     }
-  }
+  }*/
 
+/*
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
   applyDefaultHierarchyTemplate {
     common {
@@ -44,7 +47,7 @@ kotlin {
       }
     }
   }
-  */
+*/
 
   sourceSets {
     val commonMain by getting {
@@ -171,5 +174,17 @@ tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
 }
 
 tasks.named<Task>("publishKotlinMultiplatformPublicationToSonatypeRepository") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
+
+tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
+  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
