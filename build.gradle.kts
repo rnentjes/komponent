@@ -120,6 +120,18 @@ publishing {
         password = ossrhPassword
       }
     }
+    maven {
+      name = "gitea"
+      setUrl("https://gitea.astraeus.nl/api/packages/rnentjes/maven")
+
+      credentials() {
+        val giteaUsername: kotlin.String? by project
+        val giteaPassword: kotlin.String? by project
+
+        username = giteaUsername
+        password = giteaPassword
+      }
+    }
   }
 
   // Configure all publications
@@ -174,17 +186,5 @@ tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
 }
 
 tasks.named<Task>("publishKotlinMultiplatformPublicationToSonatypeRepository") {
-  dependsOn(tasks.named<Task>("signJsPublication"))
-}
-
-tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal") {
-  dependsOn(tasks.named<Task>("signWasmJsPublication"))
-}
-
-tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
-  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
-}
-
-tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
 }
