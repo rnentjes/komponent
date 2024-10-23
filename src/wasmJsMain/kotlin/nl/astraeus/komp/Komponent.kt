@@ -177,7 +177,7 @@ abstract class Komponent {
     private var nextCreateIndex: Int = 1
     private var updateCallback: Int? = null
     private var errorHandler: (KomponentException) -> Unit = { ke ->
-      console.error("Render error in Komponent", ke)
+      println("Render error in Komponent: $ke")
 
       ke.element?.innerHTML = """<div class="komponent-error">Render error!</div>"""
 
@@ -225,11 +225,11 @@ abstract class Komponent {
       runUpdate()
     }
 
-    private fun runUpdate() {
+    private fun runUpdate(): JsAny {
       val todo = scheduledForUpdate.sortedBy { komponent -> komponent.createIndex }
 
       if (logRenderEvent) {
-        console.log("runUpdate")
+        println("runUpdate")
       }
 
       todo.forEach { next ->
@@ -239,7 +239,7 @@ abstract class Komponent {
           if (element is HTMLElement) {
             if (next.dirty) {
               if (logRenderEvent) {
-                console.log("Update dirty ${next.createIndex}")
+                println("Update dirty ${next.createIndex}")
               }
               val memoizeHash = next.generateMemoizeHash()
 
@@ -249,21 +249,23 @@ abstract class Komponent {
                 next.updateMemoizeHash()
                 next.onAfterUpdate()
               } else if (logRenderEvent) {
-                console.log("Skipped render, memoizeHash is equal $next-[$memoizeHash]")
+                println("Skipped render, memoizeHash is equal $next-[$memoizeHash]")
               }
             } else {
               if (logRenderEvent) {
-                console.log("Skip ${next.createIndex}")
+                println("Skip ${next.createIndex}")
               }
             }
           } else {
-            console.log("Komponent element is null", next, element)
+            println("Komponent element is null $next, $element")
           }
         }
       }
 
       scheduledForUpdate.clear()
       updateCallback = null
+
+      return "JsAny".toJsString()
     }
   }
 

@@ -1,5 +1,6 @@
 package nl.astraeus.komp
 
+import org.w3c.dom.AddEventListenerOptions
 import org.w3c.dom.events.Event
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
@@ -130,7 +131,7 @@ internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
 
   getKompEvents()[eventName] = event
 
-  this.addEventListener(eventName, event)
+  this.addEventListener(eventName, event) // AddEventListenerOptions(true))
 }
 
 private val kompEvents = mutableMapOf<Element, MutableMap<String, (Event) -> Unit>>()

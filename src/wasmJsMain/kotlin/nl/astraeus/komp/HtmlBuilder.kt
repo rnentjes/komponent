@@ -51,7 +51,7 @@ class HtmlBuilder(
     ) {
       currentPosition.replace(komponent.element!!)
       if (Komponent.logRenderEvent) {
-        console.log(
+        println(
           "Skipped include $komponent, memoize hasn't changed"
         )
       }
@@ -91,7 +91,7 @@ class HtmlBuilder(
 
   private fun logReplace(msg: () -> String) {
     if (Komponent.logReplaceEvent && inDebug) {
-      console.log(msg.invoke())
+      println(msg.invoke())
     }
   }
 
@@ -161,11 +161,9 @@ class HtmlBuilder(
 
   private fun checkTag(source: String, tag: Tag) {
     check(currentElement != null) {
-      js("debugger;")
       "No current tag ($source)"
     }
     check(currentElement?.tagName.equals(tag.tagName, ignoreCase = true)) {
-      js("debugger;")
       "Wrong current tag ($source), got: ${tag.tagName} expected ${currentElement?.tagName}"
     }
   }
@@ -327,7 +325,9 @@ class HtmlBuilder(
               namespace == "http://www.w3.org/2000/svg"
             )
       ) {
-        currentElement?.innerHTML += textContent.trim()
+        if (currentElement?.innerHTML != textContent) {
+          currentElement?.innerHTML += textContent
+        }
       } else if (currentElement?.textContent != textContent) {
         currentElement?.textContent = textContent
       }

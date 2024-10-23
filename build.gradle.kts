@@ -1,15 +1,16 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+@file:OptIn(ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-  kotlin("multiplatform") version "2.0.0"
-  id("maven-publish")
-  id("signing")
+  kotlin("multiplatform") version "2.0.20"
+  `maven-publish`
+  signing
   id("org.jetbrains.dokka") version "1.5.31"
 }
 
 group = "nl.astraeus"
-version = "1.2.4-SNAPSHOT"
+version = "1.2.4"
 
 repositories {
   mavenCentral()
@@ -18,14 +19,13 @@ repositories {
 kotlin {
   js {
     browser {
-      testTask {
+/*      testTask {
         useKarma {
           useChromiumHeadless()
         }
-      }
+      }*/
     }
   }
-/*  @OptIn(ExperimentalWasmDsl::class)
   wasmJs {
     //moduleName = project.name
     browser()
@@ -34,7 +34,7 @@ kotlin {
       groupId = group as String
       pom { name = "${project.name}-wasm-js" }
     }
-  }*/
+  }
 
 /*
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -58,9 +58,10 @@ kotlin {
     val jsMain by getting
     val jsTest by getting {
       dependencies {
-        implementation(kotlin("test-js"))
+        implementation(kotlin("test"))
       }
     }
+    val wasmJsMain by getting
   }
 }
 
@@ -169,22 +170,52 @@ signing {
   sign(publishing.publications)
 }
 
-tasks.named<Task>("signJsPublication") {
-  dependsOn(tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocal"))
-}
-
 tasks.named<Task>("publishJsPublicationToReleasesRepository") {
   dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
 }
 
 tasks.named<Task>("publishKotlinMultiplatformPublicationToMavenLocalRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
 }
 
 tasks.named<Task>("publishKotlinMultiplatformPublicationToReleasesRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
 }
 
 tasks.named<Task>("publishKotlinMultiplatformPublicationToSonatypeRepository") {
   dependsOn(tasks.named<Task>("signJsPublication"))
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
+tasks.named<Task>("publishJsPublicationToMavenLocalRepository") {
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToMavenLocalRepository") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToMavenLocal") {
+  dependsOn(tasks.named<Task>("signJsPublication"))
+}
+
+
+tasks.named<Task>("publishJsPublicationToGiteaRepository") {
+  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
+  dependsOn(tasks.named<Task>("signJsPublication"))
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
+tasks.named<Task>("publishKotlinMultiplatformPublicationToGiteaRepository") {
+  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
+  dependsOn(tasks.named<Task>("signJsPublication"))
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
+}
+
+tasks.named<Task>("publishWasmJsPublicationToGiteaRepository") {
+  dependsOn(tasks.named<Task>("signKotlinMultiplatformPublication"))
+  dependsOn(tasks.named<Task>("signJsPublication"))
+  dependsOn(tasks.named<Task>("signWasmJsPublication"))
 }
