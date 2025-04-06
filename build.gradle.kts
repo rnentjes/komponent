@@ -137,7 +137,3 @@ mavenPublishing {
     }
   }
 }
-
-tasks.withType<PublishToMavenRepository> {
-  dependsOn(tasks.withType<Sign>())
-}
