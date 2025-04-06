@@ -1,7 +1,6 @@
 package nl.astraeus.komp
 
 import kotlinx.browser.document
-import kotlinx.html.DIV
 import kotlinx.html.InputType
 import kotlinx.html.classes
 import kotlinx.html.div

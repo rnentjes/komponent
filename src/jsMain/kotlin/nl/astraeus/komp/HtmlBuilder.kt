@@ -26,7 +26,7 @@ interface HtmlConsumer : TagConsumer<Element> {
 fun FlowOrMetaDataOrPhrasingContent.currentElement(): Element =
   currentElement ?: error("No current element defined!")
 
-private fun Node.asElement() = this as? HTMLElement
+private fun Node?.asElement() = this as? HTMLElement
 
 class HtmlBuilder(
   private val komponent: Komponent?,

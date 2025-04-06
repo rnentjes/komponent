@@ -10,51 +10,60 @@ plugins {
 }
 
 group = "nl.astraeus"
-version = "1.2.5-SNAPSHOT"
+version = "1.2.5"
 
 repositories {
   mavenCentral()
 }
+
+/*
+tasks.withType<Test>(Test::class.java) {
+  useJUnitPlatform()
+}
+*/
 
 kotlin {
   js {
     browser {
       testTask {
         useKarma {
-          useChromiumHeadless()
+          useChromeHeadless()
         }
       }
     }
   }
-/*
-  wasmJs {
-    //moduleName = project.name
-    browser()
+  /*  wasmJs {
+      //moduleName = project.name
+      browser()
 
-    mavenPublication {
-      groupId = group as String
-      pom { name = "${project.name}-wasm-js" }
-    }
-  }
-*/
+      mavenPublication {
+        groupId = group as String
+        pom { name = "${project.name}-wasm-js" }
+      }
+    }*/
 
-/*
-  @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  applyDefaultHierarchyTemplate {
-    common {
-      group("jsCommon") {
-        withJs()
-        // TODO: switch to `withWasmJs()` after upgrade to Kotlin 2.0
-        withWasm()
+  /*
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+      common {
+        group("jsCommon") {
+          withJs()
+          // TODO: switch to `withWasmJs()` after upgrade to Kotlin 2.0
+          withWasm()
+        }
       }
     }
-  }
-*/
+  */
 
   sourceSets {
     val commonMain by getting {
       dependencies {
-        api("org.jetbrains.kotlinx:kotlinx-html:0.11.0")
+        api("org.jetbrains.kotlinx:kotlinx-html:0.12.0")
+      }
+    }
+    val commonTest by getting {
+      dependencies {
+        implementation(kotlin("test"))
       }
     }
     val jsMain by getting
@@ -128,8 +137,8 @@ publishing {
       setUrl("https://gitea.astraeus.nl/api/packages/rnentjes/maven")
 
       credentials() {
-        val giteaUsername: kotlin.String? by project
-        val giteaPassword: kotlin.String? by project
+        val giteaUsername: String? by project
+        val giteaPassword: String? by project
 
         username = giteaUsername
         password = giteaPassword
@@ -174,4 +183,8 @@ tasks.withType<AbstractPublishToMaven> {
 
 signing {
   sign(publishing.publications)
+}
+
+tasks.withType<PublishToMavenRepository> {
+  dependsOn(tasks.withType<Sign>())
 }

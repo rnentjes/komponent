@@ -191,6 +191,7 @@ abstract class Komponent {
     private var scheduledForUpdate = mutableSetOf<Komponent>()
     private var interceptor: (Komponent, () -> Unit) -> Unit = { _, block -> block() }
 
+    var logUpdateEvent = false
     var logRenderEvent = false
     var logReplaceEvent = false
     var enableAssertions = false
@@ -244,6 +245,9 @@ abstract class Komponent {
               val memoizeHash = next.generateMemoizeHash()
 
               if (next.memoizeChanged()) {
+                if (logUpdateEvent) {
+                  console.log("Rendering", next)
+                }
                 next.onBeforeUpdate()
                 next.renderUpdate()
                 next.updateMemoizeHash()
