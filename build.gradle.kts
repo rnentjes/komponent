@@ -1,12 +1,13 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
   kotlin("multiplatform") version "2.1.10"
-  `maven-publish`
   signing
   id("org.jetbrains.dokka") version "1.5.31"
+  id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
 group = "nl.astraeus"
@@ -14,6 +15,10 @@ version = "1.2.5"
 
 repositories {
   mavenCentral()
+  maven {
+    name = "Sonatype Releases"
+    url = uri("https://central.sonatype.com/api/v1/publisher/deployments/download/")
+  }
 }
 
 /*
@@ -76,102 +81,19 @@ kotlin {
   }
 }
 
-extra["PUBLISH_GROUP_ID"] = group
-extra["PUBLISH_VERSION"] = version
-extra["PUBLISH_ARTIFACT_ID"] = name
-
-// Stub secrets to let the project sync and build without the publication values set up
-val signingKeyId: String? by project
-val signingPassword: String? by project
-val signingSecretKeyRingFile: String? by project
-val ossrhUsername: String? by project
-val ossrhPassword: String? by project
-
-extra["signing.keyId"] = signingKeyId
-extra["signing.password"] = signingPassword
-extra["signing.secretKeyRingFile"] = signingSecretKeyRingFile
-extra["ossrhUsername"] = ossrhUsername
-extra["ossrhPassword"] = ossrhPassword
-
-val javadocJar by tasks.registering(Jar::class) {
-  archiveClassifier.set("javadoc")
-}
-
 publishing {
   repositories {
     mavenLocal()
     maven {
-      name = "releases"
-      // change to point to your repo, e.g. http://my.org/repo
-      setUrl("https://reposilite.astraeus.nl/releases")
-      credentials {
-        val reposiliteUsername: String? by project
-        val reposilitePassword: String? by project
-
-        username = reposiliteUsername
-        password = reposilitePassword
-      }
-    }
-    maven {
-      name = "snapshots"
-      // change to point to your repo, e.g. http://my.org/repo
-      setUrl("https://reposilite.astraeus.nl/snapshots")
-      credentials {
-        val reposiliteUsername: String? by project
-        val reposilitePassword: String? by project
-
-        username = reposiliteUsername
-        password = reposilitePassword
-      }
-    }
-    maven {
-      name = "sonatype"
-      setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-      credentials {
-        username = ossrhUsername
-        password = ossrhPassword
-      }
-    }
-    maven {
       name = "gitea"
       setUrl("https://gitea.astraeus.nl/api/packages/rnentjes/maven")
 
-      credentials() {
+      credentials {
         val giteaUsername: String? by project
         val giteaPassword: String? by project
 
         username = giteaUsername
         password = giteaPassword
-      }
-    }
-  }
-
-  // Configure all publications
-  publications.withType<MavenPublication> {
-    // Stub javadoc.jar artifact
-    artifact(javadocJar.get())
-
-    // Provide artifacts information requited by Maven Central
-    pom {
-      name.set("kotlin-komponent")
-      description.set("Kotlin komponent")
-      url.set("https://github.com/rnentjes/komponent")
-
-      licenses {
-        license {
-          name.set("MIT")
-          url.set("https://opensource.org/licenses/MIT")
-        }
-      }
-      developers {
-        developer {
-          id.set("rnentjes")
-          name.set("Rien Nentjes")
-          email.set("info@nentjes.com")
-        }
-      }
-      scm {
-        url.set("https://github.com/rnentjes/komponent")
       }
     }
   }
@@ -183,6 +105,37 @@ tasks.withType<AbstractPublishToMaven> {
 
 signing {
   sign(publishing.publications)
+}
+
+mavenPublishing {
+  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+  signAllPublications()
+
+  coordinates(group.toString(), name.toString(), version.toString())
+
+  pom {
+    name = "kotlin-komponent"
+    description = "Kotlin komponent"
+    inceptionYear = "2017"
+    url = "https://github.com/rnentjes/komponent"
+    licenses {
+      license {
+        name = "MIT"
+        url = "https://opensource.org/licenses/MIT"
+      }
+    }
+    developers {
+      developer {
+        id = "rnentjes"
+        name = "Rien Nentjes"
+        email = "info@nentjes.com"
+      }
+    }
+    scm {
+      url = "https://github.com/rnentjes/komponent"
+    }
+  }
 }
 
 tasks.withType<PublishToMavenRepository> {
