@@ -74,11 +74,9 @@ internal fun Element.setKompAttribute(attributeName: String, value: String?) {
         "checked" -> {
           checked = false
         }
-/*
         "class" -> {
           className = ""
         }
-*/
         "value" -> {
           this.value = ""
         }
@@ -86,6 +84,8 @@ internal fun Element.setKompAttribute(attributeName: String, value: String?) {
           removeAttribute(attributeName)
         }
       }
+    } else if (attributeName == "class") {
+      className = ""
     } else {
       removeAttribute(attributeName)
     }
@@ -95,11 +95,9 @@ internal fun Element.setKompAttribute(attributeName: String, value: String?) {
         "checked" -> {
           checked = "checked" == value
         }
-/*
         "class" -> {
           className = value
         }
-*/
         "value" -> {
           this.value = value
         }
@@ -107,6 +105,8 @@ internal fun Element.setKompAttribute(attributeName: String, value: String?) {
           setAttribute(attributeName, value)
         }
       }
+    } else if (attributeName == "class") {
+      className = value
     } else if (this.getAttribute(attributeName) != value) {
       setAttribute(attributeName, value)
     }
