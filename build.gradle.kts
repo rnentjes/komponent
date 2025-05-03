@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
   kotlin("multiplatform") version "2.1.10"
   signing
-  id("org.jetbrains.dokka") version "1.5.31"
+  id("org.jetbrains.dokka") version "2.0.0"
   id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
@@ -112,7 +112,7 @@ mavenPublishing {
 
   signAllPublications()
 
-  coordinates(group.toString(), name.toString(), version.toString())
+  coordinates(group.toString(), name, version.toString())
 
   pom {
     name = "kotlin-komponent"
