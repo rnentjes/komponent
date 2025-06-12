@@ -233,10 +233,7 @@ class HtmlBuilder(
           if (attribute?.name != null) {
             val attr = attribute.name
 
-            if (
-              !setAttrs.contains(attr) &&
-              attr != "style"
-            ) {
+            if (!setAttrs.contains(attr)) {
               element.setKompAttribute(attr, null)
             }
           }
