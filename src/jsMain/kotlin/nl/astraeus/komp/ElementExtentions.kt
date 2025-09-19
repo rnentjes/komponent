@@ -1,9 +1,8 @@
 package nl.astraeus.komp
 
-import org.w3c.dom.events.Event
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.EventListener
+import org.w3c.dom.events.Event
 import org.w3c.dom.get
 
 private fun Int.asSpaces(): String {
@@ -129,10 +128,15 @@ internal fun Element.setKompEvent(name: String, event: (Event) -> Unit) {
   this.addEventListener(eventName, event)
 }
 
-private val kompEvents = mutableMapOf<Element, MutableMap<String, (Event) -> Unit>>()
-
 internal fun Element.getKompEvents(): MutableMap<String, (Event) -> Unit> {
-  return kompEvents.getOrPut(this) { mutableMapOf() }
+  var map = this.asDynamic()["komp-events"] as? MutableMap<String, (Event) -> Unit>
+
+  if (map == null) {
+    map = mutableMapOf()
+    this.asDynamic()["komp-events"] = map
+  }
+
+  return map
 }
 
 internal fun Element.findElementIndex(): Int {
